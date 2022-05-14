@@ -27,11 +27,6 @@ pacman -Sy git --noconfirm
 git clone https://github.com/bunnicash/archinstall
 cd archinstall && chmod +x * && ./archinstall.sh
 ```
-```
-pacman -Sy git --noconfirm
-git clone -b testing https://github.com/bunnicash/archinstall
-cd archinstall && chmod +x * && ./archinstall.sh
-```
 <br>
 
 ## Useful Information
@@ -54,3 +49,6 @@ cd archinstall && chmod +x * && ./archinstall.sh
 - [x] Program group management, ability to have additional programs installed from user input
 - [x] Colorful and easy to understand input prompts
 - [x] And more... <br><br>
+
+### FAQ:
+- Is there an unstable branch for testing? Yes, you can use the testing branch: `git clone -b testing https://github.com/bunnicash/archinstall` <br>

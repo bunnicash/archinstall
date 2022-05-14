@@ -3,8 +3,8 @@
 version="v3.1"
 
 ##Colors
-c-cy () {
-    echo -ne "\e[94m" # Cyan
+c-bl () {
+    echo -ne "\e[94m" # Blue
 }
 c-df () {
     echo -ne "\e[39m" # Default
@@ -12,7 +12,7 @@ c-df () {
 
 ##Archinstall
 cd /root/archinstall
-c-cy && echo -ne "
+c-bl && echo -ne "
 
             -                |
            /#\               |
@@ -31,7 +31,7 @@ bash startup.sh
 cd /root && mv archinstall /mnt/root
 arch-chroot /mnt /root/archinstall/main.sh
 echo " " && rm -rf /mnt/root/archinstall && umount -l /mnt
-c-cy && echo -ne "
+c-bl && echo -ne "
 
             -                |
            /#\               |
