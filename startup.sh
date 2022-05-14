@@ -35,7 +35,7 @@ echo " "
 ##Partitioning
 drive=$(cat /root/archinstall/drive.txt)
 read -r -p "==> Enter a SWAP [e.g: 8G, 16G] and a ROOT partition size [e.g: 50G, 100G], separated by a space: " part_swap part_root && echo " "
-echo -ne "Starting the partitioning process on $drive"
+echo "Starting the partitioning process on $drive"
 umount -A --recursive /mnt
 echo " "
 partprobe /dev/$drive
