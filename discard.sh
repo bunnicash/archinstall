@@ -12,4 +12,4 @@ elif [ $machineused == "hw" ] || [ $machineused == "HW" ]; then
 fi
 echo -e "blkdiscard: done!\n"
 partprobe /dev/$targetd
-echo $targetd > /root/archinstall/drive.txt && echo " "
+echo $targetd > /root/archinstall/drive.txt
