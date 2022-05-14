@@ -21,7 +21,7 @@ Automated Arch Linux Installation <br>
 </p>
 <br>
 
-## Get started (main/testing branch)
+## Using archinstall
 ```
 pacman -Sy git --noconfirm
 git clone https://github.com/bunnicash/archinstall
@@ -31,10 +31,10 @@ cd archinstall && chmod +x * && ./archinstall.sh
 
 ## Useful Information
 - Use an EFI system, enable EFI mode when using VM's
-- For the partitioning wizard, have a disk with >=100GB (Use sensible SWAP and ROOT partition sizes)
-- Using WiFi, you'll have to set it up (iwctl/iw): *iw dev wlan0 connect SSID* (SSID with spaces, type: "SSIDpart1 part2")
-- Nvidia users are encouraged to edit the pre-made X11 config at /etx/X11/xorg.conf e.g for custom DPI scaling
-- When typing names, e.g for folders or programs in the terminal, press tab to autocomplete <br><br>
+- For the partitioning wizard, have a disk with >=100GB
+- Using WiFi from the start, set it up using iwctl/iw: *iw dev wlan0 connect SSID* (SSID with spaces: "SSIDpart1 part2")
+- Nvidia users are encouraged to edit the pre-made X11 config at /etx/X11/xorg.conf e.g for custom DPI scaling!
+- Be faster: When typing things into the terminal, press tab to auto-complete <br><br>
 
 ## Features
 - [x] Keymap setup, automated disk formatting/partitioning, bootloader setup (systemd-boot/grub)
@@ -47,8 +47,8 @@ cd archinstall && chmod +x * && ./archinstall.sh
 - [x] PulseAudio installation as well as a large selection of DE/WM-specific and mainsteam-standard apps
 - [x] Memlock management for emulation, installation of both virt-manager (kvm/qemu/libvirt) and virtualbox
 - [x] Program group management, ability to have additional programs installed from user input
-- [x] Colorful and easy to understand input prompts
+- [x] Colorful and easy to understand user prompts
 - [x] And more... <br><br>
 
 ### FAQ:
-- Is there an unstable branch for testing? Yes, you can use the testing branch: `git clone -b testing https://github.com/bunnicash/archinstall` <br>
+- Is there an unstable branch for testing? Yes, you can use the testing branch: `git clone -b testing https://github.com/bunnicash/archinstall` <br><br>
