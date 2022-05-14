@@ -1,0 +1,10 @@
+# Folders
+/Archive/
+
+# General
+*.txt
+*.log
+
+# Specific
+*_test.sh
+*_beta.sh
