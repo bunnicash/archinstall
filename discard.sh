@@ -3,19 +3,13 @@
 
 ##Wiping: Securely erase target
 lsblk && echo " "
-read -r -p "[ARCHINSTALL] ==> Select the target drive: " targetd
-echo " "
-read -p "[ARCHINSTALL] ==> Are you installing this on a VM [y/n]? " machineused
-echo " "
-echo "Wiping target drive entirely!"
-if [ $machineused == "y" ] || [ $machineused == "Y" ]; then
+read -r -p "==> Enter the target drive and the machine type [vm/hw], separated by a space: " targetd machineused
+echo -e "\nWiping target drive entirely!"
+if [ $machineused == "vm" ] || [ $machineused == "VM" ]; then
     blkdiscard -z -f /dev/$targetd ; sync
-    echo "blkdiscard: done!"
-elif [ $machineused == "n" ] || [ $machineused == "N" ]; then
+elif [ $machineused == "hw" ] || [ $machineused == "HW" ]; then
     blkdiscard -v -f /dev/$targetd ; sync
-    echo "blkdiscard: done!"
 fi
-echo " "
+echo -e "blkdiscard: done!\n"
 partprobe /dev/$targetd
 echo $targetd > /root/archinstall/drive.txt
-echo " "

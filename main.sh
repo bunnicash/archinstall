@@ -1,51 +1,42 @@
 #!/bin/bash
 ## GPL-2.0 - @bunnicash, 2022
 
-##Colors
-c-cy () {
-    echo -ne "\e[94m" # Cyan
-}
-c-df () {
-    echo -ne "\e[39m" # Default
-}
-
 ##Locale
 defaultlocale="en_US.UTF-8"
 defaultlocale2="UTF-8"
-read -p "[ARCHINSTALL] ==> Is this locale correct: '$defaultlocale $defaultlocale2' [y/n]? " localeconfirm
+read -p "==> Is this locale correct: '$defaultlocale $defaultlocale2' [y/n]? " localeconfirm
 echo " "
 if [ $localeconfirm == "n" ] || [ $localeconfirm == "N" ]; then
-    read -p "[ARCHINSTALL] ==> Starting locale setup, enter [fr, es, de, en, US, GB, AU] to find: " nation
+    read -p "==> Starting locale setup, enter [fr, es, de, en, US, GB, AU] to find: " nation
     cat /etc/locale.gen | grep $nation
     echo " "
-    read -r -p "[ARCHINSTALL] ==> Enter your locale as listed [e.g: en_US.UTF-8 UTF-8, en_IL UTF-8]: " locale locale2
+    read -r -p "==> Enter your locale as listed [e.g: en_US.UTF-8 UTF-8, en_IL UTF-8]: " locale locale2
     echo "$locale $locale2" >> /etc/locale.gen
     locale-gen
     echo "LANG=$locale" > /etc/locale.conf
     export LANG=$locale
-    echo " "
 elif [ $localeconfirm == "y" ] || [ $localeconfirm == "Y" ]; then
     echo "$defaultlocale $defaultlocale2" >> /etc/locale.gen
     locale-gen
     echo "LANG=$defaultlocale" > /etc/locale.conf
     export LANG=$defaultlocale
-    echo " "
 fi
+echo " "
 
 ##Keymap(2)
 layout2=$(cat /root/archinstall/layout.txt)
 echo "KEYMAP=$layout2" >> /etc/vconsole.conf
-echo " "
 
 ##Timezone
-ls /usr/share/zoneinfo
-echo " "
-read -p "[ARCHINSTALL] ==> Enter your timezone [e.g: Europe/Berlin, America/New_York, Asia/Tokyo]: " zone
+ls /usr/share/zoneinfo && echo " "
+read -p "==> Enter your timezone [e.g: Europe/Berlin, America/New_York, Asia/Tokyo]: " zone
 ln -sf /usr/share/zoneinfo/$zone > /etc/localtime
-hwclock --systohc
 echo " "
+hwclock --systohc
+timedatectl set-ntp true
 
 ##Multilib, Pacman, Trim
+systemctl enable fstrim.timer
 cp /etc/pacman.conf /etc/pacman.backup
 sed -i 's/^#ParallelDownloads/ParallelDownloads/' /etc/pacman.conf
 echo -ne "
@@ -54,31 +45,26 @@ Include = /etc/pacman.d/mirrorlist
 " >> /etc/pacman.conf
 pacman -Sy nano bash-completion --noconfirm
 echo " "
-systemctl enable fstrim.timer
-echo " "
 
 ##Accounts
-read -p "[ARCHINSTALL] ==> Enter your desired system hostname: " hostname
+read -p "==> Enter your desired system hostname: " hostname
 echo "$hostname" > /etc/hostname
 echo "127.0.0.1 localhost" >> /etc/hosts
 echo "::1       localhost" >> /etc/hosts
 echo "127.0.1.1 $hostname" >> /etc/hosts
 echo " "
-#Root Account
-echo "[ARCHINSTALL] ==> Set a password for the root account:" && passwd
+# Root Account
+echo "==> Set a password for the root account:" && passwd
 echo " "
-#User Account
-read -p "[ARCHINSTALL] ==> Create a user account by entering a user name in lowercase: " useracc
+# User Account
+read -p "==> Create a user account by entering a user name in lowercase: " useracc
 useradd -m -g users -G wheel,storage,power -s /bin/bash $useracc
-echo "[ARCHINSTALL] ==> Set a password for the user account:" && passwd $useracc
+echo "==> Set a password for the user account:" && passwd $useracc
 echo -ne "
 %wheel ALL=(ALL) ALL
 Defaults rootpw
 " >> /etc/sudoers
 echo " "
-
-##For Drivers (Options Root Variable), Maybe GRUB (originates from discard.sh: targetd)
-drive=$(cat /root/archinstall/drive.txt)
 
 ##Efivarfs, Bootloader(2)
 bootloader=$(cat /root/archinstall/bootloader.txt)
@@ -89,7 +75,7 @@ elif [ $bootloader == "grub" ]; then
     grub-mkconfig -o /boot/grub/grub.cfg
     echo "GRUB_DISABLE_OS_PROBER=false" >> /etc/default/grub
     grub-mkconfig -o /boot/grub/grub.cfg
-    # https://wiki.archlinux.org/title/GRUB#Installation (Tip: --removable...)
+    # https://wiki.archlinux.org/title/GRUB#Installation ( --removable )
 fi
 echo " "
 pacman -S dhcpcd networkmanager linux-headers --noconfirm --needed
@@ -98,7 +84,9 @@ systemctl enable NetworkManager.service
 echo " "
 
 ##Drivers
-#Probing for CPU model, downloading ucode, changing bootloader default.conf
+# For drivers, GRUB (discard.sh: targetd)
+drive=$(cat /root/archinstall/drive.txt)
+# GET-CPU: Intel / AMD
 proc_type=$(lscpu)
 if grep -E "GenuineIntel" <<< ${proc_type}; then
     echo "Intel microcode: Installing and generating bootloader default.conf"
@@ -125,24 +113,19 @@ initrd /initramfs-linux.img
         echo "grub: skipping further bootloader config"
     fi
 fi
-
-#Probing for GPU model
-#NVIDIA: Change mkinitcpio.conf, bootloader default.conf and create pacman hook...
+# GET-GPU: NVIDIA
 gpu_type=$(lspci)
 if grep -E "NVIDIA|GeForce" <<< ${gpu_type}; then
     pacman -S mesa lib32-mesa nvidia-dkms nvidia-utils opencl-nvidia lib32-opencl-nvidia libglvnd lib32-libglvnd lib32-nvidia-utils nvidia-settings vulkan-icd-loader lib32-vulkan-icd-loader vulkan-tools --noconfirm
-    # ___________________________________________
-    # Changing bootloader default.conf, append:
+    # Change bootloader default.conf, append:
     if [ $bootloader == "systemd" ]; then
         echo "options root=PARTUUID=$(blkid -s PARTUUID -o value /dev/${drive}3) rw nvidia-drm.modeset=1" >> /boot/loader/entries/default.conf
     elif [ $bootloader == "grub" ]; then
         echo "grub: skipping further bootloader config"
     fi
-    # ___________________________________________
     # Change mkinitcpio.conf:
     cp /etc/mkinitcpio.conf /etc/mkinitcpio.backup
     sed -i 's/MODULES=()/MODULES=(nvidia nvidia_modeset nvidia_uvm nvidia_drm)/' /etc/mkinitcpio.conf
-    # ___________________________________________
     # Create Nvidia Pacman Hook ("nvidia", "nvidia.hook" both work):
     mkdir /etc/pacman.d/hooks
     echo -ne "[Trigger]
@@ -157,7 +140,6 @@ Depends=mkinitcpio
 When=PostTransaction
 Exec=/usr/bin/mkinitcpio -P
 " > /etc/pacman.d/hooks/nvidia
-    # ___________________________________________
     # Create X11 config:
     nvidia-xconfig
     cp /etc/X11/xorg.conf /etc/X11/xorg.backup
@@ -170,6 +152,7 @@ Section \"OutputClass\"
 EndSection
 " >> /etc/X11/xorg.conf
     echo "Nvidia GPU: Done. Changed mkinitcpio.conf, bootloader-default.conf, xorg.conf and created pacman hook."
+# GET-GPU: AMD / Radeon
 elif lspci | grep 'VGA' | grep -E "Radeon|AMD"; then
     pacman -S mesa lib32-mesa xf86-video-amdgpu vulkan-radeon lib32-vulkan-radeon vulkan-icd-loader lib32-vulkan-icd-loader vulkan-tools --noconfirm
     if [ $bootloader == "systemd" ]; then
@@ -178,9 +161,9 @@ elif lspci | grep 'VGA' | grep -E "Radeon|AMD"; then
         echo "grub: skipping further bootloader config"
     fi
     echo "AMD GPU: Done. No further config needed."
+# GET-GPU: Intel (Packages "vulkan-intel lib32-vulkan-intel vulkan-icd-loader lib32-vulkan-icd-loader" enough, DE-specific? Often not recommended: "xf86-video-intel")
 elif grep -E "Integrated Graphics Controller" <<< ${gpu_type}; then
     pacman -S mesa lib32-mesa libva-intel-driver libvdpau-va-gl lib32-vulkan-intel vulkan-intel libva-intel-driver libva-utils vulkan-icd-loader lib32-vulkan-icd-loader vulkan-tools --noconfirm
-    # Packages "vulkan-intel lib32-vulkan-intel vulkan-icd-loader lib32-vulkan-icd-loader" might be enough, DE-specific? What about "xf86-video-intel"? Often not recommended.
     if [ $bootloader == "systemd" ]; then
         echo "options root=PARTUUID=$(blkid -s PARTUUID -o value /dev/${drive}3) rw" >> /boot/loader/entries/default.conf
     elif [ $bootloader == "grub" ]; then
@@ -189,13 +172,13 @@ elif grep -E "Integrated Graphics Controller" <<< ${gpu_type}; then
     echo "Intel GPU: Done. No further config needed."
 elif grep -E "Intel Corporation UHD" <<< ${gpu_type}; then
     pacman -S mesa lib32-mesa libva-intel-driver libvdpau-va-gl lib32-vulkan-intel vulkan-intel libva-intel-driver libva-utils vulkan-icd-loader lib32-vulkan-icd-loader vulkan-tools --noconfirm
-    # Packages "vulkan-intel lib32-vulkan-intel vulkan-icd-loader lib32-vulkan-icd-loader" might be enough, DE-specific? What about "xf86-video-intel"? Often not recommended.
     if [ $bootloader == "systemd" ]; then
         echo "options root=PARTUUID=$(blkid -s PARTUUID -o value /dev/${drive}3) rw" >> /boot/loader/entries/default.conf
     elif [ $bootloader == "grub" ]; then
         echo "grub: skipping further bootloader config"
     fi
     echo "Intel GPU: Done. No further config needed."
+# GET-GPU: VM's
 elif grep -E "VMware SVGA II Adapter" <<< ${gpu_type}; then
     pacman -S mesa lib32-mesa xf86-video-vmware vulkan-tools --noconfirm
     if [ $bootloader == "systemd" ]; then
@@ -203,7 +186,6 @@ elif grep -E "VMware SVGA II Adapter" <<< ${gpu_type}; then
     elif [ $bootloader == "grub" ]; then
         echo "grub: skipping further bootloader config"
     fi
-    # VirtualBox uses this.
     echo "VMware GPU: Done. No further config needed."
 elif grep -E "Red Hat, Inc. QXL paravirtual graphic card" <<< ${gpu_type}; then
     pacman -S mesa lib32-mesa xf86-video-qxl vulkan-tools --noconfirm
@@ -212,13 +194,12 @@ elif grep -E "Red Hat, Inc. QXL paravirtual graphic card" <<< ${gpu_type}; then
     elif [ $bootloader == "grub" ]; then
         echo "grub: skipping further bootloader config"
     fi
-    # KVM, QEMU, libvirt, virt-manager uses this.
     echo "VM QXL GPU: Done. No further config needed."
 fi
 echo " "
 
 ##GUI Setup (DS + DM + DE/WM)
-echo " " && echo -ne "Starting graphical user interface installation.
+echo " " && echo -ne "Starting graphical user interface installation...
 
 
 Using XORG/X11 as Display Server [DS]:
@@ -234,36 +215,36 @@ Using XORG/X11 as Display Server [DS]:
 
 Custom configurations:
 
-  ( 1 )  Wayland [DS] with GDM [DM] and Gnome [DE]: Wayland-only
-  ( 2 )  XORG/X11 [DS] with SDDM [DM] and KDE [DE]: Dev Platform
-  ( 3 )  XORG/X11 [DS] with LightDM [DM] and DDE [DE]: Deepin Desktop
-  ( 4 )  XORG/X11 [DS] with GDM [DM] and Cinnamon [DE]: Dev Platform
+  ( 1 )  Wayland  [DS] with GDM     [DM] and Gnome    [DE]: Wayland-only
+  ( 2 )  XORG/X11 [DS] with SDDM    [DM] and KDE      [DE]: Dev Platform
+  ( 3 )  XORG/X11 [DS] with LightDM [DM] and DDE      [DE]: Deepin Desktop
+  ( 4 )  XORG/X11 [DS] with GDM     [DM] and Cinnamon [DE]: Dev Platform
 
 "
-echo " " && echo -ne "[ARCHINSTALL] ==> Select a display manager         [A, B, C]
-    And a desktop environment or window manager    [D, E, F, G, H, I]
-    All in one line, each separated with a space
-    OR:
-    Alternatively, select a custom configuration   [1, 2, 3, 4]"
+echo " " && echo -ne "
+==> Select a display manager [A, B, C] and a desktop environment / window manager [D, E, F, G, H, I]
+    separated by a space
+    
+    Alternatively, select a single custom configuration [1, 2, 3, 4]"
 read -r -p ": " displayman de_wm && echo " "
 if [ $displayman == "A" ]; then
-    #DM - SDDM
+    # DM - SDDM
     pacman -S xorg-server xorg-apps xorg-xinit xorg-twm xorg-xclock xterm --noconfirm
     pacman -S sddm --noconfirm
     systemctl enable sddm.service
 elif [ $displayman == "B" ]; then
-    #DM - LightDM
+    # DM - LightDM
     pacman -S xorg-server xorg-apps xorg-xinit xorg-twm xorg-xclock xterm --noconfirm
     pacman -S lightdm lightdm-gtk-greeter lightdm-gtk-greeter-settings lightdm-slick-greeter --noconfirm
     systemctl enable lightdm.service
     echo "greeter-session=lightdm-slick-greeter" >> /etc/lightdm/lightdm.conf
 elif [ $displayman == "C" ]; then
-    #DM - GDM
+    # DM - GDM
     pacman -S xorg-server xorg-apps xorg-xinit xorg-twm xorg-xclock xterm --noconfirm
     pacman -S gdm --noconfirm
     systemctl enable gdm.service
 elif [ $displayman == "1" ]; then
-    #Custom - Gnome Wayland (Command "echo $XDG_SESSION_TYPE" shows "wayland" post-boot)
+    # Custom - Gnome Wayland (Command "echo $XDG_SESSION_TYPE" shows "wayland" post-boot)
     pacman -S gdm --noconfirm
     systemctl enable gdm.service
     pacman -S gnome --noconfirm
@@ -273,7 +254,7 @@ elif [ $displayman == "1" ]; then
     systemctl enable cups.service
     de_wm="0"
 elif [ $displayman == "2" ]; then
-    #Custom - KDE development platform
+    # Custom - KDE development platform
     pacman -S xorg-server xorg-apps xorg-xinit xorg-twm xorg-xclock xterm --noconfirm
     pacman -S sddm --noconfirm
     systemctl enable sddm.service
@@ -285,7 +266,7 @@ elif [ $displayman == "2" ]; then
     systemctl enable cups.service
     de_wm="0"
 elif [ $displayman == "3" ]; then
-    #Custom - Deepin Desktop Environment (DDE)
+    # Custom - Deepin Desktop Environment (DDE)
     pacman -S xorg-server xorg-apps xorg-xinit xorg-twm xorg-xclock xterm --noconfirm
     pacman -S deepin deepin-extra deepin-kwin lightdm bluez bluez-tools ntfs-3g exfatprogs ufw gufw cups --noconfirm
     systemctl enable lightdm.service
@@ -295,7 +276,7 @@ elif [ $displayman == "3" ]; then
     systemctl enable cups.service
     de_wm="0"
 elif [ $displayman == "4" ]; then
-    #Custom - Cinnamon development platform
+    # Custom - Cinnamon development platform
     pacman -S xorg-server xorg-apps xorg-xinit xorg-twm xorg-xclock xterm --noconfirm
     pacman -S gdm --noconfirm
     systemctl enable gdm.service
@@ -308,60 +289,40 @@ elif [ $displayman == "4" ]; then
 fi
 echo " "
 if [ $de_wm == "D" ]; then
-    #DE/WM - KDE
+    # DE/WM - KDE
     pacman -S plasma okular kate breeze kuickshow ksystemlog bluez bluez-tools firewalld ntfs-3g exfatprogs spectacle konsole partitionmanager dolphin ark unrar p7zip colord-kde kcalc network-manager-applet system-config-printer cups --noconfirm
     pacman -R discover --noconfirm
     systemctl enable bluetooth.service
     systemctl enable firewalld.service
     systemctl enable cups.service
 elif [ $de_wm == "E" ]; then
-    #DE/WM - Cinnamon
+    # DE/WM - Cinnamon
     pacman -S cinnamon ttf-dejavu nemo-fileroller system-config-printer gnome-keyring gnome-calculator xreader xed eog eog-plugins blueberry bluez bluez-tools cups gnome-terminal ufw gufw gnome-disk-utility exfatprogs ntfs-3g colord --noconfirm
     systemctl enable bluetooth.service
     systemctl enable ufw.service
     systemctl enable cups.service
 elif [ $de_wm == "F" ]; then
-    #DE/WM - XFCE
+    # DE/WM - XFCE
     pacman -S xfce4 xfce4-goodies gnome-disk-utility xfce4-settings thunar-archive-plugin colord colord-gtk galculator file-roller thunar-media-tags-plugin gvfs bluez bluez-tools firewalld ntfs-3g exfatprogs network-manager-applet system-config-printer cups xfce-terminal xfce-screenshooter --noconfirm
     systemctl enable bluetooth.service
     systemctl enable firewalld.service
     systemctl enable cups.service
 elif [ $de_wm == "G" ]; then
-    #DE/WM - Gnome (X11)
+    # DE/WM - Gnome (X11)
     pacman -S gnome --noconfirm
     pacman -S gnome-bluetooth bluez bluez-tools file-roller gnome-terminal nautilus eog evince gnome-calculator gnome-calendar gnome-color-manager gnome-tweaks gnome-power-manager gnome-system-monitor gnome-control-center gnome-screenshot ntfs-3g exfatprogs cups ufw gufw colord system-config-printer --noconfirm
     systemctl enable bluetooth.service
     systemctl enable ufw.service
     systemctl enable cups.service
 elif [ $de_wm == "H" ]; then
-    #DE/WM - XMonad (https://wiki.archlinux.org/title/xmonad)
+    # DE/WM - XMonad (https://wiki.archlinux.org/title/xmonad)
     pacman -S xmonad xmonad-contrib dmenu xmobar xterm --noconfirm
-    echo " "
-    echo -ne "Basic XMonad shortcuts (mod key = alt):
-
-alt+shift+ENTER:      Opens terminal (default: xterm)
-alt+SPACE:            Change layout
-alt+K, alt+J:         Change window focus
-alt+H, alt+L:         Decreases/increases border size between windows
-alt+shift+C:          Close focused window
-alt+ENTER:            Move focused window to the master pane on the left
-alt+shift+Q:          Log out
-alt+Q:                Reload xmonad configurations
-alt+P:                Dmenu (launcher) "
-    sleep 5
+    echo -e "\nTo get started with xmonad, see: https://xmonad.org/documentation.html" && sleep 4 
 elif [ $de_wm == "I" ]; then
-    #DE/WM - i3 (https://wiki.archlinux.org/title/i3)
+    # DE/WM - i3 (https://wiki.archlinux.org/title/i3)
     pacman -S i3-wm i3lock i3status i3blocks dmenu konsole --noconfirm
     cp /etc/X11/xinit/xinitrc/ ~/.xinitrc
-    echo " "
-    echo -ne "To get started with the i3 window manager, see:
-
-https://i3wm.org/docs/refcard.html
-https://i3wm.org/docs/userguide.html
-
-As of now, you will have to set up i3 entirely on your own!
-Future updates will automate this eventually. "
-    sleep 5
+    echo -e "\nTo get started with i3wm, see: https://i3wm.org/docs/" && sleep 4
 fi
 echo " "
 
@@ -369,32 +330,32 @@ echo " "
 pacman -S pulseaudio pulseaudio-alsa alsa-plugins libpulse lib32-libpulse lib32-alsa-plugins pavucontrol --noconfirm --needed
 
 ##Standard Applications
-#Main Programs
+# Basic Programs
 pacman -S lm_sensors mpv celluloid thunderbird firefox discord gimp papirus-icon-theme neofetch arch-wiki-docs htop bashtop --noconfirm --needed
-#LibreOffice and Fonts
+# LibreOffice, Fonts
 pacman -S libreoffice-still ttf-caladea ttf-carlito ttf-dejavu ttf-liberation ttf-linux-libertine-g noto-fonts noto-fonts-cjk noto-fonts-emoji --noconfirm --needed
-#OBS
+# OBS
 pacman -S ffmpeg obs-studio --noconfirm --needed
-#Emus   (group: realtime)
+# Emus, Memlock   (group: realtime)
 pacman -S ppsspp desmume realtime-privileges --noconfirm --needed
 echo " "
 echo -ne "
 *      soft      memlock      unlimited
 *      hard      memlock      unlimited
 " >> /etc/security/limits.conf
-#VMs(1)   (group: libvirt)
+# VMs(1)   (group: libvirt)
 pacman -S dnsmasq qemu-full libvirt virt-manager --noconfirm
 yes | pacman -S ebtables
 systemctl enable libvirtd.service
 echo " "
-#VMs(2)   (group: vboxusers)
+# VMs(2)   (group: vboxusers)
 pacman -S virtualbox-host-dkms virtualbox virtualbox-guest-iso --noconfirm
 echo " "
-#AppImage Dependencies (https://github.com/AppImage/AppImageKit/wiki/FUSE, https://github.com/AppImage/AppImageKit/issues/1120)
+# AppImage Dependencies (https://github.com/AppImage/AppImageKit/wiki/FUSE, https://github.com/AppImage/AppImageKit/issues/1120)
 pacman -S fuse fuse3 --noconfirm --needed
 echo " "
-#Custom packages
-read -p "[ARCHINSTALL] ==> Enter any additional packages you want to install [package1 package2 packageN] or press enter for none: " packages_ext
+# Custom packages
+read -p "==> Enter any additional packages you want to install, or press enter for none: " packages_ext
 if [ ${#packages_ext} -ge 2 ]; then
     pacman -S $packages_ext --noconfirm
 fi
