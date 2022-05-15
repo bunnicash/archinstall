@@ -157,7 +157,7 @@ Section \"OutputClass\"
     Option \"DPI\" \"96 x 96\"
 EndSection
 " >> /etc/X11/xorg.conf
-    echo "Nvidia GPU: Done. Changed mkinitcpio.conf, bootloader-default.conf, xorg.conf and created pacman hook."
+    echo "Nvidia GPU: Done."
 # GET-GPU: AMD / Radeon
 elif lspci | grep 'VGA' | grep -E "Radeon|AMD"; then
     pacman -S mesa lib32-mesa xf86-video-amdgpu vulkan-radeon lib32-vulkan-radeon vulkan-icd-loader lib32-vulkan-icd-loader vulkan-tools --noconfirm
@@ -166,7 +166,7 @@ elif lspci | grep 'VGA' | grep -E "Radeon|AMD"; then
     elif [ $bootloader == "grub" ]; then
         echo "grub: skipping further bootloader config"
     fi
-    echo "AMD GPU: Done. No further config needed."
+    echo "AMD GPU: Done."
 # GET-GPU: Intel (Packages "vulkan-intel lib32-vulkan-intel vulkan-icd-loader lib32-vulkan-icd-loader" enough, DE-specific? Often not recommended: "xf86-video-intel")
 elif grep -E "Integrated Graphics Controller" <<< ${gpu_type}; then
     pacman -S mesa lib32-mesa libva-intel-driver libvdpau-va-gl lib32-vulkan-intel vulkan-intel libva-intel-driver libva-utils vulkan-icd-loader lib32-vulkan-icd-loader vulkan-tools --noconfirm
@@ -175,7 +175,7 @@ elif grep -E "Integrated Graphics Controller" <<< ${gpu_type}; then
     elif [ $bootloader == "grub" ]; then
         echo "grub: skipping further bootloader config"
     fi
-    echo "Intel GPU: Done. No further config needed."
+    echo "Intel GPU: Done."
 elif grep -E "Intel Corporation UHD" <<< ${gpu_type}; then
     pacman -S mesa lib32-mesa libva-intel-driver libvdpau-va-gl lib32-vulkan-intel vulkan-intel libva-intel-driver libva-utils vulkan-icd-loader lib32-vulkan-icd-loader vulkan-tools --noconfirm
     if [ $bootloader == "systemd" ]; then
@@ -183,7 +183,7 @@ elif grep -E "Intel Corporation UHD" <<< ${gpu_type}; then
     elif [ $bootloader == "grub" ]; then
         echo "grub: skipping further bootloader config"
     fi
-    echo "Intel GPU: Done. No further config needed."
+    echo "Intel GPU: Done."
 # GET-GPU: VM's
 elif grep -E "VMware SVGA II Adapter" <<< ${gpu_type}; then
     pacman -S mesa lib32-mesa xf86-video-vmware vulkan-tools --noconfirm
@@ -192,7 +192,7 @@ elif grep -E "VMware SVGA II Adapter" <<< ${gpu_type}; then
     elif [ $bootloader == "grub" ]; then
         echo "grub: skipping further bootloader config"
     fi
-    echo "VMware GPU: Done. No further config needed."
+    echo "VMware GPU: Done."
 elif grep -E "Red Hat, Inc. QXL paravirtual graphic card" <<< ${gpu_type}; then
     pacman -S mesa lib32-mesa xf86-video-qxl vulkan-tools --noconfirm
     if [ $bootloader == "systemd" ]; then
@@ -200,7 +200,7 @@ elif grep -E "Red Hat, Inc. QXL paravirtual graphic card" <<< ${gpu_type}; then
     elif [ $bootloader == "grub" ]; then
         echo "grub: skipping further bootloader config"
     fi
-    echo "VM QXL GPU: Done. No further config needed."
+    echo "VM QXL GPU: Done."
 fi
 echo " "
 
