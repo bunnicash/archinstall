@@ -3,7 +3,7 @@
 
 ##Wiping: Securely erase target
 lsblk && echo " "
-read -r -p "==> Enter the target drive [e.g: sda] and machine type [VM/HW], separated by a space: " targetd machineused
+read -r -p "==> Enter the target drive [e.g: sda] and machine type [vm, hw] separated by a space: " targetd machineused
 echo -e "\nWiping target drive entirely!"
 if [ $machineused == "vm" ] || [ $machineused == "VM" ]; then
     blkdiscard -z -f /dev/$targetd ; sync

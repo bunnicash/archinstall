@@ -69,7 +69,7 @@ echo " "
 ##Bootloader(1), Kernel, Basic packages, Fstab
 echo -ne "
 ==> Select the bootloader [systemd, grub] and
-    the kernel [linux, linux-lts, linux-zen, linux-hardened], separated by a space"
+    the kernel [linux, linux-lts, linux-zen, linux-hardened] separated by a space"
 read -r -p ": " bootloader kernelver && echo " "
 if [ $bootloader == "systemd" ]; then
     use_bootloader=""

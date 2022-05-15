@@ -79,7 +79,7 @@ elif [ $bootloader == "grub" ]; then
     # https://wiki.archlinux.org/title/GRUB#Installation ( --removable )
 fi
 echo " "
-pacman -S dhcpcd networkmanager -noconfirm --needed
+pacman -S dhcpcd networkmanager --noconfirm --needed
 systemctl enable dhcpcd.service
 systemctl enable NetworkManager.service
 echo " "
