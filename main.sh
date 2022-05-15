@@ -266,7 +266,7 @@ elif [ $displayman == "2" ]; then
     systemctl enable sddm.service
     pacman -S plasma okular kate breeze ksystemlog bluez bluez-tools firewalld ntfs-3g exfatprogs spectacle konsole dolphin ark unrar p7zip colord-kde kcalc network-manager-applet system-config-printer cups --noconfirm
     pacman -R discover --noconfirm
-    pacman -S git tk r php cmake eog gnome-disk-utility vulkan-devel nano faudio gnome-keyring --noconfirm
+    pacman -S git tk r php nasm cmake eog gnome-disk-utility vulkan-devel nano faudio gnome-keyring --noconfirm
     systemctl enable bluetooth.service
     systemctl enable firewalld.service
     systemctl enable cups.service
@@ -287,7 +287,7 @@ elif [ $displayman == "4" ]; then
     pacman -S gdm --noconfirm
     systemctl enable gdm.service
     pacman -S cinnamon ttf-dejavu nemo-terminal nemo-fileroller system-config-printer xreader eog eog-plugins blueberry bluez bluez-tools cups gnome-terminal firewalld gnome-disk-utility exfatprogs ntfs-3g colord colord-gtk --noconfirm
-    pacman -S git tk r php cmake vulkan-devel nano unrar p7zip faudio gnome-screenshot copyq gedit gspell gnome-keyring gnome-calculator --noconfirm
+    pacman -S git tk r php nasm cmake vulkan-devel nano unrar p7zip faudio gnome-screenshot copyq gedit gspell gnome-keyring gnome-calculator --noconfirm
     systemctl enable bluetooth.service
     systemctl enable firewalld.service
     systemctl enable cups.service
