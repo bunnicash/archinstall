@@ -70,6 +70,7 @@ echo " "
 bootloader=$(cat /root/archinstall/bootloader.txt)
 if [ $bootloader == "systemd" ]; then
     bootctl install
+    # https://wiki.archlinux.org/title/systemd-boot 
 elif [ $bootloader == "grub" ]; then
     grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=GRUB --removable
     grub-mkconfig -o /boot/grub/grub.cfg
@@ -78,14 +79,19 @@ elif [ $bootloader == "grub" ]; then
     # https://wiki.archlinux.org/title/GRUB#Installation ( --removable )
 fi
 echo " "
-pacman -S dhcpcd networkmanager linux-headers --noconfirm --needed
+pacman -S dhcpcd networkmanager --noconfirm --needed
 systemctl enable dhcpcd.service
 systemctl enable NetworkManager.service
 echo " "
 
 ##Drivers
-# For drivers, GRUB (discard.sh: targetd)
+# Import: drive = targetd in discard.sh  |  kernelver = kernelver in startup.sh
 drive=$(cat /root/archinstall/drive.txt)
+kernelver=$(cat /root/archinstall/kernelver.txt)
+if [ $kernelver == "linux-lts" ]; then
+    nvidia_package="nvidia-lts"
+else nvidia_package="nvidia-dkms"
+fi
 # GET-CPU: Intel / AMD
 proc_type=$(lscpu)
 if grep -E "GenuineIntel" <<< ${proc_type}; then
@@ -93,9 +99,9 @@ if grep -E "GenuineIntel" <<< ${proc_type}; then
     pacman -Sy --noconfirm intel-ucode
     if [ $bootloader == "systemd" ]; then
         echo -ne "title Arch Linux
-linux /vmlinuz-linux
+linux /vmlinuz-$kernelver
 initrd /intel-ucode.img
-initrd /initramfs-linux.img
+initrd /initramfs-$kernelver.img
 " > /boot/loader/entries/default.conf
     elif [ $bootloader == "grub" ]; then
         echo "grub: skipping further bootloader config"
@@ -105,9 +111,9 @@ elif grep -E "AuthenticAMD" <<< ${proc_type}; then
     pacman -Sy --noconfirm amd-ucode
     if [ $bootloader == "systemd" ]; then
         echo -ne "title Arch Linux
-linux /vmlinuz-linux
+linux /vmlinuz-$kernelver
 initrd /amd-ucode.img
-initrd /initramfs-linux.img
+initrd /initramfs-$kernelver.img
 " > /boot/loader/entries/default.conf
     elif [ $bootloader == "grub" ]; then
         echo "grub: skipping further bootloader config"
@@ -116,7 +122,7 @@ fi
 # GET-GPU: NVIDIA
 gpu_type=$(lspci)
 if grep -E "NVIDIA|GeForce" <<< ${gpu_type}; then
-    pacman -S mesa lib32-mesa nvidia-dkms nvidia-utils opencl-nvidia lib32-opencl-nvidia libglvnd lib32-libglvnd lib32-nvidia-utils nvidia-settings vulkan-icd-loader lib32-vulkan-icd-loader vulkan-tools --noconfirm
+    pacman -S mesa lib32-mesa $nvidia_package nvidia-utils opencl-nvidia lib32-opencl-nvidia libglvnd lib32-libglvnd lib32-nvidia-utils nvidia-settings vulkan-icd-loader lib32-vulkan-icd-loader vulkan-tools --noconfirm
     # Change bootloader default.conf, append:
     if [ $bootloader == "systemd" ]; then
         echo "options root=PARTUUID=$(blkid -s PARTUUID -o value /dev/${drive}3) rw nvidia-drm.modeset=1" >> /boot/loader/entries/default.conf
@@ -126,14 +132,14 @@ if grep -E "NVIDIA|GeForce" <<< ${gpu_type}; then
     # Change mkinitcpio.conf:
     cp /etc/mkinitcpio.conf /etc/mkinitcpio.backup
     sed -i 's/MODULES=()/MODULES=(nvidia nvidia_modeset nvidia_uvm nvidia_drm)/' /etc/mkinitcpio.conf
-    # Create Nvidia Pacman Hook ("nvidia", "nvidia.hook" both work):
+    # Create Nvidia Pacman Hook ("nvidia" "nvidia.hook" both work):
     mkdir /etc/pacman.d/hooks
     echo -ne "[Trigger]
 Operation=Install
 Operation=Upgrade
 Operation=Remove
 Type=Package
-Target=nvidia
+Target=$nvidia_package
 
 [Action]
 Depends=mkinitcpio
@@ -151,7 +157,7 @@ Section \"OutputClass\"
     Option \"DPI\" \"96 x 96\"
 EndSection
 " >> /etc/X11/xorg.conf
-    echo "Nvidia GPU: Done. Changed mkinitcpio.conf, bootloader-default.conf, xorg.conf and created pacman hook."
+    echo "Nvidia GPU: Done."
 # GET-GPU: AMD / Radeon
 elif lspci | grep 'VGA' | grep -E "Radeon|AMD"; then
     pacman -S mesa lib32-mesa xf86-video-amdgpu vulkan-radeon lib32-vulkan-radeon vulkan-icd-loader lib32-vulkan-icd-loader vulkan-tools --noconfirm
@@ -160,7 +166,7 @@ elif lspci | grep 'VGA' | grep -E "Radeon|AMD"; then
     elif [ $bootloader == "grub" ]; then
         echo "grub: skipping further bootloader config"
     fi
-    echo "AMD GPU: Done. No further config needed."
+    echo "AMD GPU: Done."
 # GET-GPU: Intel (Packages "vulkan-intel lib32-vulkan-intel vulkan-icd-loader lib32-vulkan-icd-loader" enough, DE-specific? Often not recommended: "xf86-video-intel")
 elif grep -E "Integrated Graphics Controller" <<< ${gpu_type}; then
     pacman -S mesa lib32-mesa libva-intel-driver libvdpau-va-gl lib32-vulkan-intel vulkan-intel libva-intel-driver libva-utils vulkan-icd-loader lib32-vulkan-icd-loader vulkan-tools --noconfirm
@@ -169,7 +175,7 @@ elif grep -E "Integrated Graphics Controller" <<< ${gpu_type}; then
     elif [ $bootloader == "grub" ]; then
         echo "grub: skipping further bootloader config"
     fi
-    echo "Intel GPU: Done. No further config needed."
+    echo "Intel GPU: Done."
 elif grep -E "Intel Corporation UHD" <<< ${gpu_type}; then
     pacman -S mesa lib32-mesa libva-intel-driver libvdpau-va-gl lib32-vulkan-intel vulkan-intel libva-intel-driver libva-utils vulkan-icd-loader lib32-vulkan-icd-loader vulkan-tools --noconfirm
     if [ $bootloader == "systemd" ]; then
@@ -177,7 +183,7 @@ elif grep -E "Intel Corporation UHD" <<< ${gpu_type}; then
     elif [ $bootloader == "grub" ]; then
         echo "grub: skipping further bootloader config"
     fi
-    echo "Intel GPU: Done. No further config needed."
+    echo "Intel GPU: Done."
 # GET-GPU: VM's
 elif grep -E "VMware SVGA II Adapter" <<< ${gpu_type}; then
     pacman -S mesa lib32-mesa xf86-video-vmware vulkan-tools --noconfirm
@@ -186,7 +192,7 @@ elif grep -E "VMware SVGA II Adapter" <<< ${gpu_type}; then
     elif [ $bootloader == "grub" ]; then
         echo "grub: skipping further bootloader config"
     fi
-    echo "VMware GPU: Done. No further config needed."
+    echo "VMware GPU: Done."
 elif grep -E "Red Hat, Inc. QXL paravirtual graphic card" <<< ${gpu_type}; then
     pacman -S mesa lib32-mesa xf86-video-qxl vulkan-tools --noconfirm
     if [ $bootloader == "systemd" ]; then
@@ -194,7 +200,7 @@ elif grep -E "Red Hat, Inc. QXL paravirtual graphic card" <<< ${gpu_type}; then
     elif [ $bootloader == "grub" ]; then
         echo "grub: skipping further bootloader config"
     fi
-    echo "VM QXL GPU: Done. No further config needed."
+    echo "VM QXL GPU: Done."
 fi
 echo " "
 
@@ -260,7 +266,7 @@ elif [ $displayman == "2" ]; then
     systemctl enable sddm.service
     pacman -S plasma okular kate breeze ksystemlog bluez bluez-tools firewalld ntfs-3g exfatprogs spectacle konsole dolphin ark unrar p7zip colord-kde kcalc network-manager-applet system-config-printer cups --noconfirm
     pacman -R discover --noconfirm
-    pacman -S git tk r php cmake eog gnome-disk-utility vulkan-devel nano faudio gnome-keyring --noconfirm
+    pacman -S git tk r php nasm cmake eog gnome-disk-utility vulkan-devel nano faudio gnome-keyring --noconfirm
     systemctl enable bluetooth.service
     systemctl enable firewalld.service
     systemctl enable cups.service
@@ -281,7 +287,7 @@ elif [ $displayman == "4" ]; then
     pacman -S gdm --noconfirm
     systemctl enable gdm.service
     pacman -S cinnamon ttf-dejavu nemo-terminal nemo-fileroller system-config-printer xreader eog eog-plugins blueberry bluez bluez-tools cups gnome-terminal firewalld gnome-disk-utility exfatprogs ntfs-3g colord colord-gtk --noconfirm
-    pacman -S git tk r php cmake vulkan-devel nano unrar p7zip faudio gnome-screenshot copyq gedit gspell gnome-keyring gnome-calculator --noconfirm
+    pacman -S git tk r php nasm cmake vulkan-devel nano unrar p7zip faudio gnome-screenshot copyq gedit gspell gnome-keyring gnome-calculator --noconfirm
     systemctl enable bluetooth.service
     systemctl enable firewalld.service
     systemctl enable cups.service

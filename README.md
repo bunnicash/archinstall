@@ -39,6 +39,7 @@ cd archinstall && chmod +x * && ./archinstall.sh
 ## Features
 - [x] Keymap setup, automated disk formatting/partitioning, bootloader setup (systemd-boot/grub)
 - [x] Initial mirrorlist ranking, automated base package installation (base, base-devel, linux...)
+- [x] Multiple kernels available: linux, linux-lts, linux-zen, linux-hardened
 - [x] Locale setup, automatically enable multilib, config mods such as sudoers, hosts, limits
 - [x] User and root account creation including their passwords
 - [x] Automated microcode (ucode) installation (intel/amd) as well as bootloader config changes as well as

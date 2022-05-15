@@ -66,15 +66,28 @@ pacman -Sy archlinux-keyring pacman-contrib --noconfirm
 rankmirrors -n 6 /etc/pacman.d/mirrorlist.backup > /etc/pacman.d/mirrorlist
 echo " "
 
-##Bootloader(1), Basic packages, Fstab
-read -p "==> Select the bootloader [systemd, grub]: " bootloader
+##Bootloader(1), Kernel, Basic packages, Fstab
+echo -ne "
+==> Select the bootloader [systemd, grub] and
+    the kernel [linux, linux-lts, linux-zen, linux-hardened] separated by a space"
+read -r -p ": " bootloader kernelver && echo " "
 if [ $bootloader == "systemd" ]; then
-    echo "Preparing bootloader: systemd-boot..."
-    pacstrap -i /mnt base base-devel linux linux-firmware linux-headers --noconfirm
+    use_bootloader=""
 elif [ $bootloader == "grub" ]; then
-    echo "Preparing bootloader: grub"
-    pacstrap -i /mnt grub efibootmgr os-prober base base-devel linux linux-firmware linux-headers --noconfirm
+    use_bootloader="grub efibootmgr os-prober"
 fi
+if [ $kernelver == "linux" ]; then
+    use_kernelver="linux linux-docs linux-headers"
+elif [ $kernelver == "linux-zen" ]; then
+    use_kernelver="linux-zen linux-zen-docs linux-zen-headers"
+elif [ $kernelver == "linux-lts" ]; then
+    use_kernelver="linux-lts linux-lts-docs linux-lts-headers"
+elif [ $kernelver == "linux-hardened" ]; then
+    use_kernelver="linux-hardened linux-hardened-docs linux-hardened-headers"
+fi
+echo -e "Selected bootloader: $bootloader, selected kernel: $kernelver\n"
+pacstrap -i /mnt $use_bootloader base base-devel $use_kernelver linux-firmware --noconfirm
 echo $bootloader > /root/archinstall/bootloader.txt
+echo $kernelver > /root/archinstall/kernelver.txt
 genfstab -U -p /mnt >> /mnt/etc/fstab
 echo " "

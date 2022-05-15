@@ -1,6 +1,6 @@
 #!/bin/bash
 ## GPL-2.0 - @bunnicash, 2022
-version="v3.2"
+version="v3.3"
 
 ##Colors
 c-bl () {
