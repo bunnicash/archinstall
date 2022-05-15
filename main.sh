@@ -88,6 +88,10 @@ echo " "
 # Import: drive = targetd in discard.sh  |  kernelver = kernelver in startup.sh
 drive=$(cat /root/archinstall/drive.txt)
 kernelver=$(cat /root/archinstall/kernelver.txt)
+if [ $kernelver == "linux-lts" ]; then
+    nvidia_package="nvidia-lts"
+else nvidia_package="nvidia-dkms"
+fi
 # GET-CPU: Intel / AMD
 proc_type=$(lscpu)
 if grep -E "GenuineIntel" <<< ${proc_type}; then
@@ -118,7 +122,7 @@ fi
 # GET-GPU: NVIDIA
 gpu_type=$(lspci)
 if grep -E "NVIDIA|GeForce" <<< ${gpu_type}; then
-    pacman -S mesa lib32-mesa nvidia-dkms nvidia-utils opencl-nvidia lib32-opencl-nvidia libglvnd lib32-libglvnd lib32-nvidia-utils nvidia-settings vulkan-icd-loader lib32-vulkan-icd-loader vulkan-tools --noconfirm
+    pacman -S mesa lib32-mesa $nvidia_package nvidia-utils opencl-nvidia lib32-opencl-nvidia libglvnd lib32-libglvnd lib32-nvidia-utils nvidia-settings vulkan-icd-loader lib32-vulkan-icd-loader vulkan-tools --noconfirm
     # Change bootloader default.conf, append:
     if [ $bootloader == "systemd" ]; then
         echo "options root=PARTUUID=$(blkid -s PARTUUID -o value /dev/${drive}3) rw nvidia-drm.modeset=1" >> /boot/loader/entries/default.conf
@@ -130,10 +134,6 @@ if grep -E "NVIDIA|GeForce" <<< ${gpu_type}; then
     sed -i 's/MODULES=()/MODULES=(nvidia nvidia_modeset nvidia_uvm nvidia_drm)/' /etc/mkinitcpio.conf
     # Create Nvidia Pacman Hook ("nvidia" "nvidia.hook" both work):
     mkdir /etc/pacman.d/hooks
-    if [ $kernelver == "linux-lts" ]; then
-        nvidia_package="nvidia-lts"
-    else nvidia_package="nvidia-dkms"
-    fi
     echo -ne "[Trigger]
 Operation=Install
 Operation=Upgrade
