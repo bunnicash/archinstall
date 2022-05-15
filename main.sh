@@ -126,14 +126,14 @@ if grep -E "NVIDIA|GeForce" <<< ${gpu_type}; then
     # Change mkinitcpio.conf:
     cp /etc/mkinitcpio.conf /etc/mkinitcpio.backup
     sed -i 's/MODULES=()/MODULES=(nvidia nvidia_modeset nvidia_uvm nvidia_drm)/' /etc/mkinitcpio.conf
-    # Create Nvidia Pacman Hook ("nvidia", "nvidia.hook" both work):
+    # Create Nvidia Pacman Hook ("nvidia" "nvidia.hook" both work):
     mkdir /etc/pacman.d/hooks
     echo -ne "[Trigger]
 Operation=Install
 Operation=Upgrade
 Operation=Remove
 Type=Package
-Target=nvidia
+Target=nvidia-dkms
 
 [Action]
 Depends=mkinitcpio
