@@ -70,6 +70,7 @@ echo " "
 bootloader=$(cat /root/archinstall/bootloader.txt)
 if [ $bootloader == "systemd" ]; then
     bootctl install
+    # https://wiki.archlinux.org/title/systemd-boot 
 elif [ $bootloader == "grub" ]; then
     grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=GRUB --removable
     grub-mkconfig -o /boot/grub/grub.cfg
@@ -78,14 +79,15 @@ elif [ $bootloader == "grub" ]; then
     # https://wiki.archlinux.org/title/GRUB#Installation ( --removable )
 fi
 echo " "
-pacman -S dhcpcd networkmanager linux-headers --noconfirm --needed
+pacman -S dhcpcd networkmanager -noconfirm --needed
 systemctl enable dhcpcd.service
 systemctl enable NetworkManager.service
 echo " "
 
 ##Drivers
-# For drivers, GRUB (discard.sh: targetd)
+# Import: drive = targetd in discard.sh  |  kernelver = kernelver in startup.sh
 drive=$(cat /root/archinstall/drive.txt)
+kernelver=$(cat /root/archinstall/kernelver.txt)
 # GET-CPU: Intel / AMD
 proc_type=$(lscpu)
 if grep -E "GenuineIntel" <<< ${proc_type}; then
@@ -93,9 +95,9 @@ if grep -E "GenuineIntel" <<< ${proc_type}; then
     pacman -Sy --noconfirm intel-ucode
     if [ $bootloader == "systemd" ]; then
         echo -ne "title Arch Linux
-linux /vmlinuz-linux
+linux /vmlinuz-$kernelver
 initrd /intel-ucode.img
-initrd /initramfs-linux.img
+initrd /initramfs-$kernelver.img
 " > /boot/loader/entries/default.conf
     elif [ $bootloader == "grub" ]; then
         echo "grub: skipping further bootloader config"
@@ -105,9 +107,9 @@ elif grep -E "AuthenticAMD" <<< ${proc_type}; then
     pacman -Sy --noconfirm amd-ucode
     if [ $bootloader == "systemd" ]; then
         echo -ne "title Arch Linux
-linux /vmlinuz-linux
+linux /vmlinuz-$kernelver
 initrd /amd-ucode.img
-initrd /initramfs-linux.img
+initrd /initramfs-$kernelver.img
 " > /boot/loader/entries/default.conf
     elif [ $bootloader == "grub" ]; then
         echo "grub: skipping further bootloader config"
@@ -128,12 +130,16 @@ if grep -E "NVIDIA|GeForce" <<< ${gpu_type}; then
     sed -i 's/MODULES=()/MODULES=(nvidia nvidia_modeset nvidia_uvm nvidia_drm)/' /etc/mkinitcpio.conf
     # Create Nvidia Pacman Hook ("nvidia" "nvidia.hook" both work):
     mkdir /etc/pacman.d/hooks
+    if [ $kernelver == "linux-lts" ]; then
+        nvidia_package="nvidia-lts"
+    else nvidia_package="nvidia-dkms"
+    fi
     echo -ne "[Trigger]
 Operation=Install
 Operation=Upgrade
 Operation=Remove
 Type=Package
-Target=nvidia-dkms
+Target=$nvidia_package
 
 [Action]
 Depends=mkinitcpio
