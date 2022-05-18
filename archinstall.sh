@@ -28,12 +28,12 @@ c-bl && echo -ne "
 " && c-df
 # Configuration
 read -p "Edit archinstall configuration [1], import a custom config [2] or use defaults [3]? " archconfig
-if [ $archconfig == "1"]; then
+if [ $archconfig == "1" ]; then
     nano /root/archinstall/config.archinstall
-elif [ $archconfig == "2"]; then
+elif [ $archconfig == "2" ]; then
     read -p "Specify the absolute path to your config file [e.g /mnt/device/folder]: " importconfig
     cp -f $importconfig/config.archinstall /root/archinstall
-elif [ $archconfig == "3"]; then
+elif [ $archconfig == "3" ]; then
     echo "Using default configuration..."
 fi
 # Modules
