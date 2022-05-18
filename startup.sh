@@ -1,41 +1,11 @@
 #!/bin/bash
 ## GPL-2.0 - @bunnicash, 2022
+source /root/archinstall/config.archinstall 
 
 ##Keymap(1)
-defaultkeys="de-latin1"
 loadkeys $defaultkeys
-read -p "==> Is this keyboard layout (keymap) correct: '$defaultkeys' [y/n]? " keyconfirm
-echo " "
-if [ $keyconfirm == "n" ] || [ $keyconfirm == "N" ]; then
-    read -p "==> Select your desired keymap [de, es, fr, it, us, uk, il]: " layout
-    localectl list-keymaps | grep $layout
-    echo " "
-    read -p "==> Enter specific keyboard layout from the search results [e.g: de-latin1, uk, il-heb]: " layout2
-    loadkeys $layout2
-    echo $layout2 > /root/archinstall/layout.txt
-elif [ $keyconfirm == "y" ] || [ $keyconfirm == "Y" ]; then
-    echo $defaultkeys > /root/archinstall/layout.txt
-fi
-echo " "
-
-##WiFi
-read -p "==> Set up an additional WiFi connection [y/n]? " wifi
-if [ $wifi == "y" ] || [ $wifi == "Y" ]; then
-    echo " " && ip -c a && echo " "
-    read -p "==> Enter the WiFi device [e.g: wlan0] and the SSID (WiFi Network) separated with a space: " wdev ssid
-    echo " " && echo "==> Connecting, please enter your WiFi password:"
-    iw dev $wdev connect $ssid
-    echo " " && echo "Attempting sync..."
-    pacman -Sy
-elif [ $wifi == "n" ] || [ $wifi == "N" ]; then
-    echo "Skipping additional WiFi setup..."
-fi
-echo " "
 
 ##Partitioning
-drive=$(cat /root/archinstall/drive.txt)
-read -r -p "==> Enter a SWAP [e.g: 8G, 16G] and a ROOT partition size [e.g: 50G, 100G], separated by a space: " part_swap part_root && echo " "
-echo "Starting the partitioning process on $drive"
 umount -A --recursive /mnt
 echo " "
 partprobe /dev/$drive
@@ -67,10 +37,6 @@ rankmirrors -n 6 /etc/pacman.d/mirrorlist.backup > /etc/pacman.d/mirrorlist
 echo " "
 
 ##Bootloader(1), Kernel, Basic packages, Fstab
-echo -ne "
-==> Select the bootloader [systemd, grub] and
-    the kernel [linux, linux-lts, linux-zen, linux-hardened] separated by a space"
-read -r -p ": " bootloader kernelver && echo " "
 if [ $bootloader == "systemd" ]; then
     use_bootloader=""
 elif [ $bootloader == "grub" ]; then
@@ -87,7 +53,5 @@ elif [ $kernelver == "linux-hardened" ]; then
 fi
 echo -e "Selected bootloader: $bootloader, selected kernel: $kernelver\n"
 pacstrap -i /mnt $use_bootloader base base-devel $use_kernelver linux-firmware --noconfirm
-echo $bootloader > /root/archinstall/bootloader.txt
-echo $kernelver > /root/archinstall/kernelver.txt
 genfstab -U -p /mnt >> /mnt/etc/fstab
 echo " "

@@ -1,15 +1,13 @@
 #!/bin/bash
 ## GPL-2.0 - @bunnicash, 2022
+source /root/archinstall/config.archinstall 
 
 ##Wiping: Securely erase target
-lsblk && echo " "
-read -r -p "==> Enter the target drive [e.g: sda] and machine type [vm, hw] separated by a space: " targetd machineused
 echo -e "\nWiping target drive entirely!"
 if [ $machineused == "vm" ] || [ $machineused == "VM" ]; then
-    blkdiscard -z -f /dev/$targetd ; sync
+    blkdiscard -z -f /dev/$drive ; sync
 elif [ $machineused == "hw" ] || [ $machineused == "HW" ]; then
-    blkdiscard -v -f /dev/$targetd ; sync
+    blkdiscard -v -f /dev/$drive ; sync
 fi
 echo -e "blkdiscard: done!\n"
-partprobe /dev/$targetd
-echo $targetd > /root/archinstall/drive.txt
+partprobe /dev/$drive

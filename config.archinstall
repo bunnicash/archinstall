@@ -1,0 +1,22 @@
+#!/bin/bash
+## GPL-2.0 - @bunnicash, 2022
+
+## Archinstall Configuration
+drive="sda" 
+machineused="vm" 
+defaultkeys="de-latin1"
+part_swap="16G"
+part_root="50G"
+bootloader="systemd"
+kernelver="linux"
+defaultlocale="en_US.UTF-8"
+defaultlocale2="UTF-8"
+zone="Europe/Berlin"
+hostname="arch"
+rootpass="root"
+useracc="main"
+userpass="main"
+displayman="0"
+de_wm="0"
+guipreset="4"
+packages_ext="0"
