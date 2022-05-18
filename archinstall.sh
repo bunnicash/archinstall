@@ -1,6 +1,6 @@
 #!/bin/bash
 ## GPL-2.0 - @bunnicash, 2022
-version="v3.3"
+version="v3.4"
 
 ##Colors
 c-bl () {
@@ -12,6 +12,7 @@ c-df () {
 
 ##Archinstall
 cd /root/archinstall
+chmod +x *.sh
 c-bl && echo -ne "
 
             -                |
@@ -25,7 +26,17 @@ c-bl && echo -ne "
      '             '         |
 
 " && c-df
-chmod +x *.sh
+# Configuration
+read -p "Edit archinstall configuration [1], import a custom config [2] or use defaults [3]? " archconfig
+if [ $archconfig == "1"]; then
+    nano /root/archinstall/config.archinstall
+elif [ $archconfig == "2"]; then
+    read -p "Specify the absolute path to your config file [e.g /mnt/device/folder]: " importconfig
+    cp -f $importconfig/config.archinstall /root/archinstall
+elif [ $archconfig == "3"]; then
+    echo "Using default configuration..."
+fi
+# Modules
 bash discard.sh
 bash startup.sh
 cd /root && mv archinstall /mnt/root
@@ -37,12 +48,12 @@ c-bl && echo -ne "
            /#\               |
           /###\              |
          /#####\             |
-        /#######\            |        The installation is complete, rebooting in 3 seconds...
+        /#######\            |        The installation is complete, rebooting in 2 seconds...
        /##(   )##\           |
       /##/     \##\          |
      /#/         \#\         |
      '             '         |
 
 " && c-df
-sleep 3 && reboot now
+sleep 2 && reboot now
 

@@ -37,8 +37,9 @@ cd archinstall && chmod +x * && ./archinstall.sh
 - Be faster: When typing things into the terminal, press tab to auto-complete <br><br>
 
 ## Features
+- [x] Unattended installation mode with custom-made/imported configurations
 - [x] Keymap setup, automated disk formatting/partitioning, bootloader setup (systemd-boot/grub)
-- [x] Initial mirrorlist ranking, automated base package installation (base, base-devel, linux...)
+- [x] Initial mirrorlist ranking, automated base package installation (pacstrap)
 - [x] Multiple kernels available: linux, linux-lts, linux-zen, linux-hardened
 - [x] Locale setup, automatically enable multilib, config mods such as sudoers, hosts, limits
 - [x] User and root account creation including their passwords
@@ -48,7 +49,6 @@ cd archinstall && chmod +x * && ./archinstall.sh
 - [x] PulseAudio installation as well as a large selection of DE/WM-specific and mainsteam-standard apps
 - [x] Memlock management for emulation, installation of both virt-manager (kvm/qemu/libvirt) and virtualbox
 - [x] Program group management, ability to have additional programs installed from user input
-- [x] Colorful and easy to understand user prompts
 - [x] And more... <br><br>
 
 ### FAQ:

@@ -1,37 +1,19 @@
 #!/bin/bash
 ## GPL-2.0 - @bunnicash, 2022
+source /root/archinstall/config.archinstall 
 
 ##Locale
-defaultlocale="en_US.UTF-8"
-defaultlocale2="UTF-8"
-read -p "==> Is this locale correct: '$defaultlocale $defaultlocale2' [y/n]? " localeconfirm
-echo " "
-if [ $localeconfirm == "n" ] || [ $localeconfirm == "N" ]; then
-    read -p "==> Starting locale setup, enter [fr, es, de, en, US, GB, AU] to find: " nation
-    cat /etc/locale.gen | grep $nation
-    echo " "
-    read -r -p "==> Enter your locale as listed [e.g: en_US.UTF-8 UTF-8, en_IL UTF-8]: " locale locale2
-    echo "$locale $locale2" >> /etc/locale.gen
-    locale-gen
-    echo "LANG=$locale" > /etc/locale.conf
-    export LANG=$locale
-elif [ $localeconfirm == "y" ] || [ $localeconfirm == "Y" ]; then
-    echo "$defaultlocale $defaultlocale2" >> /etc/locale.gen
-    locale-gen
-    echo "LANG=$defaultlocale" > /etc/locale.conf
-    export LANG=$defaultlocale
-fi
+echo "$defaultlocale $defaultlocale2" >> /etc/locale.gen
+locale-gen
+echo "LANG=$defaultlocale" > /etc/locale.conf
+export LANG=$defaultlocale
 echo " "
 
 ##Keymap(2)
-layout2=$(cat /root/archinstall/layout.txt)
-echo "KEYMAP=$layout2" >> /etc/vconsole.conf
+echo "KEYMAP=$defaultkeys" >> /etc/vconsole.conf
 
 ##Timezone
-ls /usr/share/zoneinfo && echo " "
-read -p "==> Enter your timezone [e.g: Europe/Berlin, America/New_York, Asia/Tokyo]: " zone
 ln -sf /usr/share/zoneinfo/$zone > /etc/localtime
-echo " "
 hwclock --systohc
 timedatectl set-ntp true
 
@@ -43,23 +25,20 @@ echo -ne "
 [multilib]
 Include = /etc/pacman.d/mirrorlist
 " >> /etc/pacman.conf
-pacman -Sy nano bash-completion --noconfirm
+pacman -Sy nano bash-completion --noconfirm --needed
 echo " "
 
 ##Accounts
-read -p "==> Enter your desired system hostname: " hostname
 echo "$hostname" > /etc/hostname
 echo "127.0.0.1 localhost" >> /etc/hosts
 echo "::1       localhost" >> /etc/hosts
 echo "127.0.1.1 $hostname" >> /etc/hosts
-echo " "
 # Root Account
-echo "==> Set a password for the root account:" && passwd
+(echo $rootpass; echo $rootpass) | passwd
 echo " "
 # User Account
-read -p "==> Create a user account by entering a user name in lowercase: " useracc
 useradd -m -g users -G wheel,storage,power -s /bin/bash $useracc
-echo "==> Set a password for the user account:" && passwd $useracc
+(echo $rootpass; echo $rootpass) | passwd $useracc
 echo -ne "
 %wheel ALL=(ALL) ALL
 Defaults rootpw
@@ -67,7 +46,6 @@ Defaults rootpw
 echo " "
 
 ##Efivarfs, Bootloader(2)
-bootloader=$(cat /root/archinstall/bootloader.txt)
 if [ $bootloader == "systemd" ]; then
     bootctl install
     # https://wiki.archlinux.org/title/systemd-boot 
@@ -85,13 +63,6 @@ systemctl enable NetworkManager.service
 echo " "
 
 ##Drivers
-# Import: drive = targetd in discard.sh  |  kernelver = kernelver in startup.sh
-drive=$(cat /root/archinstall/drive.txt)
-kernelver=$(cat /root/archinstall/kernelver.txt)
-if [ $kernelver == "linux-lts" ]; then
-    nvidia_package="nvidia-lts"
-else nvidia_package="nvidia-dkms"
-fi
 # GET-CPU: Intel / AMD
 proc_type=$(lscpu)
 if grep -E "GenuineIntel" <<< ${proc_type}; then
@@ -133,6 +104,10 @@ if grep -E "NVIDIA|GeForce" <<< ${gpu_type}; then
     cp /etc/mkinitcpio.conf /etc/mkinitcpio.backup
     sed -i 's/MODULES=()/MODULES=(nvidia nvidia_modeset nvidia_uvm nvidia_drm)/' /etc/mkinitcpio.conf
     # Create Nvidia Pacman Hook ("nvidia" "nvidia.hook" both work):
+    if [ $kernelver == "linux-lts" ]; then
+        nvidia_package="nvidia-lts"
+    else nvidia_package="nvidia-dkms"
+    fi
     mkdir /etc/pacman.d/hooks
     echo -ne "[Trigger]
 Operation=Install
@@ -205,34 +180,6 @@ fi
 echo " "
 
 ##GUI Setup (DS + DM + DE/WM)
-echo " " && echo -ne "Starting graphical user interface installation...
-
-
-Using XORG/X11 as Display Server [DS]:
-
-  Display Manager [DM]:    |    Desktop Environment [DE] / Window Manager [WM]:
-  ( A )  SDDM              |    ( D )  KDE
-  ( B )  LightDM           |    ( E )  Cinnamon
-  ( C )  GDM               |    ( F )  XFCE
-                           |    ( G )  Gnome
-                           |    ( H )  XMonad
-                           |    ( I )  i3
-
-
-Custom configurations:
-
-  ( 1 )  Wayland  [DS] with GDM     [DM] and Gnome    [DE]: Wayland-only
-  ( 2 )  XORG/X11 [DS] with SDDM    [DM] and KDE      [DE]: Dev Platform
-  ( 3 )  XORG/X11 [DS] with LightDM [DM] and DDE      [DE]: Deepin Desktop
-  ( 4 )  XORG/X11 [DS] with GDM     [DM] and Cinnamon [DE]: Dev Platform
-
-"
-echo " " && echo -ne "
-==> Select a display manager [A, B, C] and a desktop environment / window manager [D, E, F, G, H, I]
-    separated by a space
-    
-    Alternatively, select a single custom configuration [1, 2, 3, 4]"
-read -r -p ": " displayman de_wm && echo " "
 if [ $displayman == "A" ]; then
     # DM - SDDM
     pacman -S xorg-server xorg-apps xorg-xinit xorg-twm xorg-xclock xterm --noconfirm
@@ -258,7 +205,6 @@ elif [ $displayman == "1" ]; then
     systemctl enable bluetooth.service
     systemctl enable ufw.service
     systemctl enable cups.service
-    de_wm="0"
 elif [ $displayman == "2" ]; then
     # Custom - KDE development platform
     pacman -S xorg-server xorg-apps xorg-xinit xorg-twm xorg-xclock xterm --noconfirm
@@ -270,7 +216,6 @@ elif [ $displayman == "2" ]; then
     systemctl enable bluetooth.service
     systemctl enable firewalld.service
     systemctl enable cups.service
-    de_wm="0"
 elif [ $displayman == "3" ]; then
     # Custom - Deepin Desktop Environment (DDE)
     pacman -S xorg-server xorg-apps xorg-xinit xorg-twm xorg-xclock xterm --noconfirm
@@ -280,7 +225,6 @@ elif [ $displayman == "3" ]; then
     systemctl enable bluetooth.service
     systemctl enable ufw.service
     systemctl enable cups.service
-    de_wm="0"
 elif [ $displayman == "4" ]; then
     # Custom - Cinnamon development platform
     pacman -S xorg-server xorg-apps xorg-xinit xorg-twm xorg-xclock xterm --noconfirm
@@ -291,7 +235,6 @@ elif [ $displayman == "4" ]; then
     systemctl enable bluetooth.service
     systemctl enable firewalld.service
     systemctl enable cups.service
-    de_wm="0"
 fi
 echo " "
 if [ $de_wm == "D" ]; then
@@ -329,6 +272,8 @@ elif [ $de_wm == "I" ]; then
     pacman -S i3-wm i3lock i3status i3blocks dmenu konsole --noconfirm
     cp /etc/X11/xinit/xinitrc/ ~/.xinitrc
     echo -e "\nTo get started with i3wm, see: https://i3wm.org/docs/" && sleep 4
+elif [ $de_wm == "0" ]; then
+    echo -e "\nInstalled a custom configuation package"
 fi
 echo " "
 
@@ -361,7 +306,6 @@ echo " "
 pacman -S fuse fuse3 --noconfirm --needed
 echo " "
 # Custom packages
-read -p "==> Enter any additional packages you want to install, or press enter for none: " packages_ext
 if [ ${#packages_ext} -ge 2 ]; then
     pacman -S $packages_ext --noconfirm
 fi
