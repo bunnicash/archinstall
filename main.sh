@@ -179,7 +179,8 @@ elif grep -E "Red Hat, Inc. QXL paravirtual graphic card" <<< ${gpu_type}; then
 fi
 echo " "
 
-##GUI Setup (DS + DM + DE/WM)
+##GUI Setup
+# Select DM + DE/WM 
 if [ $displayman == "A" ]; then
     # DM - SDDM
     pacman -S xorg-server xorg-apps xorg-xinit xorg-twm xorg-xclock xterm --noconfirm
@@ -196,45 +197,8 @@ elif [ $displayman == "C" ]; then
     pacman -S xorg-server xorg-apps xorg-xinit xorg-twm xorg-xclock xterm --noconfirm
     pacman -S gdm --noconfirm
     systemctl enable gdm.service
-elif [ $displayman == "1" ]; then
-    # Custom - Gnome Wayland (Command "echo $XDG_SESSION_TYPE" shows "wayland" post-boot)
-    pacman -S gdm --noconfirm
-    systemctl enable gdm.service
-    pacman -S gnome --noconfirm
-    pacman -S gnome-bluetooth bluez bluez-tools file-roller gnome-terminal nautilus eog evince gnome-calculator gnome-calendar gnome-color-manager gnome-tweaks gnome-power-manager gnome-system-monitor gnome-control-center gnome-screenshot ntfs-3g exfatprogs cups ufw gufw colord system-config-printer --noconfirm
-    systemctl enable bluetooth.service
-    systemctl enable ufw.service
-    systemctl enable cups.service
-elif [ $displayman == "2" ]; then
-    # Custom - KDE development platform
-    pacman -S xorg-server xorg-apps xorg-xinit xorg-twm xorg-xclock xterm --noconfirm
-    pacman -S sddm --noconfirm
-    systemctl enable sddm.service
-    pacman -S plasma okular kate breeze ksystemlog bluez bluez-tools firewalld ntfs-3g exfatprogs spectacle konsole dolphin ark unrar p7zip colord-kde kcalc network-manager-applet system-config-printer cups --noconfirm
-    pacman -R discover --noconfirm
-    pacman -S git tk r php nasm cmake eog gnome-disk-utility vulkan-devel nano faudio gnome-keyring --noconfirm
-    systemctl enable bluetooth.service
-    systemctl enable firewalld.service
-    systemctl enable cups.service
-elif [ $displayman == "3" ]; then
-    # Custom - Deepin Desktop Environment (DDE)
-    pacman -S xorg-server xorg-apps xorg-xinit xorg-twm xorg-xclock xterm --noconfirm
-    pacman -S deepin deepin-extra deepin-kwin lightdm bluez bluez-tools ntfs-3g exfatprogs ufw gufw cups --noconfirm
-    systemctl enable lightdm.service
-    echo "greeter-session=lightdm-deepin-greeter" >> /etc/lightdm/lightdm.conf
-    systemctl enable bluetooth.service
-    systemctl enable ufw.service
-    systemctl enable cups.service
-elif [ $displayman == "4" ]; then
-    # Custom - Cinnamon development platform
-    pacman -S xorg-server xorg-apps xorg-xinit xorg-twm xorg-xclock xterm --noconfirm
-    pacman -S gdm --noconfirm
-    systemctl enable gdm.service
-    pacman -S cinnamon ttf-dejavu nemo-terminal nemo-fileroller system-config-printer xreader eog eog-plugins blueberry bluez bluez-tools cups gnome-terminal firewalld gnome-disk-utility exfatprogs ntfs-3g colord colord-gtk --noconfirm
-    pacman -S git tk r php nasm cmake vulkan-devel nano unrar p7zip faudio gnome-screenshot copyq gedit gspell gnome-keyring gnome-calculator --noconfirm
-    systemctl enable bluetooth.service
-    systemctl enable firewalld.service
-    systemctl enable cups.service
+elif [ $displayman == "0" ]; then
+    echo "No standalone DM selected"
 fi
 echo " "
 if [ $de_wm == "D" ]; then
@@ -273,7 +237,51 @@ elif [ $de_wm == "I" ]; then
     cp /etc/X11/xinit/xinitrc/ ~/.xinitrc
     echo -e "\nTo get started with i3wm, see: https://i3wm.org/docs/" && sleep 4
 elif [ $de_wm == "0" ]; then
-    echo -e "\nInstalled a custom configuation package"
+    echo "No standalone DE, WM selected"
+fi
+echo " "
+# Select Presets
+if [ $guipreset == "1" ]; then
+    # Preset - Gnome Wayland (Command "echo $XDG_SESSION_TYPE" shows "wayland" post-boot)
+    pacman -S gdm --noconfirm
+    systemctl enable gdm.service
+    pacman -S gnome --noconfirm
+    pacman -S gnome-bluetooth bluez bluez-tools file-roller gnome-terminal nautilus eog evince gnome-calculator gnome-calendar gnome-color-manager gnome-tweaks gnome-power-manager gnome-system-monitor gnome-control-center gnome-screenshot ntfs-3g exfatprogs cups ufw gufw colord system-config-printer --noconfirm
+    systemctl enable bluetooth.service
+    systemctl enable ufw.service
+    systemctl enable cups.service
+elif [ $guipreset == "2" ]; then
+    # Preset - KDE Development Platform
+    pacman -S xorg-server xorg-apps xorg-xinit xorg-twm xorg-xclock xterm --noconfirm
+    pacman -S sddm --noconfirm
+    systemctl enable sddm.service
+    pacman -S plasma okular kate breeze ksystemlog bluez bluez-tools firewalld ntfs-3g exfatprogs spectacle konsole dolphin ark unrar p7zip colord-kde kcalc network-manager-applet system-config-printer cups --noconfirm
+    pacman -R discover --noconfirm
+    pacman -S git tk r php nasm cmake eog gnome-disk-utility vulkan-devel nano faudio gnome-keyring --noconfirm
+    systemctl enable bluetooth.service
+    systemctl enable firewalld.service
+    systemctl enable cups.service
+elif [ $guipreset == "3" ]; then
+    # Preset - Deepin Desktop Environment (DDE)
+    pacman -S xorg-server xorg-apps xorg-xinit xorg-twm xorg-xclock xterm --noconfirm
+    pacman -S deepin deepin-extra deepin-kwin lightdm bluez bluez-tools ntfs-3g exfatprogs ufw gufw cups --noconfirm
+    systemctl enable lightdm.service
+    echo "greeter-session=lightdm-deepin-greeter" >> /etc/lightdm/lightdm.conf
+    systemctl enable bluetooth.service
+    systemctl enable ufw.service
+    systemctl enable cups.service
+elif [ $guipreset == "4" ]; then
+    # Preset - Cinnamon Development Platform
+    pacman -S xorg-server xorg-apps xorg-xinit xorg-twm xorg-xclock xterm --noconfirm
+    pacman -S gdm --noconfirm
+    systemctl enable gdm.service
+    pacman -S cinnamon ttf-dejavu nemo-terminal nemo-fileroller system-config-printer xreader eog eog-plugins blueberry bluez bluez-tools cups gnome-terminal firewalld gnome-disk-utility exfatprogs ntfs-3g colord colord-gtk --noconfirm
+    pacman -S git tk r php nasm cmake vulkan-devel nano unrar p7zip faudio gnome-screenshot copyq gedit gspell gnome-keyring gnome-calculator --noconfirm
+    systemctl enable bluetooth.service
+    systemctl enable firewalld.service
+    systemctl enable cups.service
+elif [ $guipreset == "0" ]; then
+    echo "No preset selected"
 fi
 echo " "
 
