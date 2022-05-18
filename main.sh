@@ -38,7 +38,7 @@ echo "127.0.1.1 $hostname" >> /etc/hosts
 echo " "
 # User Account
 useradd -m -g users -G wheel,storage,power -s /bin/bash $useracc
-(echo $rootpass; echo $rootpass) | passwd $useracc
+(echo $userpass; echo $userpass) | passwd $useracc
 echo -ne "
 %wheel ALL=(ALL) ALL
 Defaults rootpw
