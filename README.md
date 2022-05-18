@@ -32,7 +32,7 @@ cd archinstall && chmod +x * && ./archinstall.sh
 ## Useful Information
 - Use an EFI system, enable EFI mode when using VM's
 - For the partitioning wizard, have a disk with >=100GB
-- Using WiFi from the start, set it up using iwctl/iw: *iw dev wlan0 connect SSID* (SSID with spaces: "SSIDpart1 part2")
+- Using WiFi from the start, set it up using iwctl/iw (SSID with spaces: "SSIDpart1 part2"): [Arch Wiki: Network Config](https://wiki.archlinux.org/title/Network_configuration)
 - Nvidia users are encouraged to edit the pre-made X11 config at /etx/X11/xorg.conf e.g for custom DPI scaling!
 - Be faster: When typing things into the terminal, press tab to auto-complete <br><br>
 
@@ -43,7 +43,7 @@ cd archinstall && chmod +x * && ./archinstall.sh
 - [x] Multiple kernels available: linux, linux-lts, linux-zen, linux-hardened
 - [x] Locale setup, automatically enable multilib, config mods such as sudoers, hosts, limits
 - [x] User and root account creation including their passwords
-- [x] Automated microcode (ucode) installation (intel/amd) as well as bootloader config changes as well as
+- [x] Automated microcode (ucode) installation (intel/amd) as well as bootloader config changes
 - [x] Driver detection and installation including hooks, mkinitcpio, bootloader, xorg configs for: nvidia, intel, amd, vm-qxl, vm-vmware
 - [x] Automated XORG/Wayland, DM and DE/WM installation, as well as enabling required services
 - [x] PulseAudio installation as well as a large selection of DE/WM-specific and mainsteam-standard apps
