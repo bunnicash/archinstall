@@ -33,7 +33,7 @@ cd archinstall && chmod +x * && ./archinstall.sh
 - Use an EFI system, enable EFI mode when using VM's
 - For the partitioning wizard, have a disk with >=100GB
 - Using WiFi, set it up using iwctl/iw (SSID with spaces: "SSIDpart1 part2"): [Arch Wiki: Network Config](https://wiki.archlinux.org/title/Network_configuration)
-- Nvidia users are encouraged to edit the pre-made X11 config at /etx/X11/xorg.conf e.g for custom DPI scaling!
+- Nvidia users are encouraged to edit the pre-made X11 config `/etc/X11/xorg.conf` e.g for custom DPI scaling!
 - Be faster: When typing things into the terminal, press tab to auto-complete <br><br>
 
 ## Features
@@ -47,8 +47,8 @@ cd archinstall && chmod +x * && ./archinstall.sh
 - [x] Driver detection and installation including hooks, mkinitcpio, bootloader, xorg configs for: nvidia, intel, amd, vm-qxl, vm-vmware
 - [x] Automated XORG/Wayland, DM and DE/WM installation, as well as enabling required services
 - [x] PulseAudio installation as well as a large selection of DE/WM-specific and mainsteam-standard apps
-- [x] Memlock management for emulation, installation of both virt-manager (kvm/qemu/libvirt) and virtualbox
-- [x] Program group management, ability to have additional programs installed from user input
+- [x] Memlock management for emulation, installation of both virt-manager (+kvm/qemu/libvirt) and virtualbox
+- [x] Package group management, ability to have additional programs installed from user input
 - [x] And more... <br><br>
 
 ## Testing / Contributing:
@@ -77,6 +77,8 @@ cd archinstall && chmod +x * && ./archinstall.sh
 • rootpass: password for the root account, superuser (su)
 • useracc: name for the user account 
 • userpass: password for the user account 
+
+• archserver: use a bare arch server including drivers but no GUI setup at all, no standard apps etc - use 1 to enable, 0 to disable
 
 • displayman: setup for the display server (XORG/X11) and the display manager - use A for "SDDM", B for "LightDM", C for "GDM" and 0 for none 
 • de_wm: add the preferred desktop environment or window manager - use D for "KDE", E for "Cinnamon", F for "XFCE", G for "Gnome", H for "XMonad", I for "i3wm" and 0 for none
