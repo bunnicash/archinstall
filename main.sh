@@ -1,5 +1,5 @@
 #!/bin/bash
-## GPL-2.0 - @bunnicash, 2022
+## Copyright (C) 2022 bunnicash "@bunnicash" and licensed under GPL-2.0
 source /root/archinstall/config.archinstall 
 
 ##Locale
@@ -181,6 +181,10 @@ echo " "
 
 ##GUI Setup
 # Select DM + DE/WM 
+if [ $archserver == "1" ]; then
+    echo "Arch server installed, skipping graphical options and standard app suite!"
+    exit 0
+fi
 if [ $displayman == "A" ]; then
     # DM - SDDM
     pacman -S xorg-server xorg-apps xorg-xinit xorg-twm xorg-xclock xterm --noconfirm

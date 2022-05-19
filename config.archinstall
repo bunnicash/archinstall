@@ -1,5 +1,5 @@
 #!/bin/bash
-## GPL-2.0 - @bunnicash, 2022
+## Copyright (C) 2022 bunnicash "@bunnicash" and licensed under GPL-2.0
 
 ## Archinstall Configuration
 drive="sda" 
@@ -16,6 +16,7 @@ hostname="arch"
 rootpass="root"
 useracc="main"
 userpass="main"
+archserver="0"
 displayman="0"
 de_wm="0"
 guipreset="4"
