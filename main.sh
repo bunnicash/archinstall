@@ -261,7 +261,7 @@ elif [ $guipreset == "2" ]; then
     systemctl enable sddm.service
     pacman -S plasma okular kate breeze ksystemlog bluez bluez-tools firewalld ntfs-3g exfatprogs spectacle konsole dolphin ark unrar p7zip colord-kde kcalc network-manager-applet system-config-printer cups --noconfirm
     pacman -R discover --noconfirm
-    pacman -S git tk r php nasm cmake eog gnome-disk-utility vulkan-devel nano faudio gnome-keyring --noconfirm
+    pacman -S git clang lua nodejs typescript tk r php nasm cmake eog gnome-disk-utility vulkan-devel nano faudio gnome-keyring --noconfirm
     systemctl enable bluetooth.service
     systemctl enable firewalld.service
     systemctl enable cups.service
@@ -280,7 +280,7 @@ elif [ $guipreset == "4" ]; then
     pacman -S gdm --noconfirm
     systemctl enable gdm.service
     pacman -S cinnamon ttf-dejavu nemo-terminal nemo-fileroller system-config-printer xreader eog eog-plugins blueberry bluez bluez-tools cups gnome-terminal firewalld gnome-disk-utility exfatprogs ntfs-3g colord colord-gtk --noconfirm
-    pacman -S git tk r php nasm cmake vulkan-devel nano unrar p7zip faudio gnome-screenshot copyq gedit gspell gnome-keyring gnome-calculator --noconfirm
+    pacman -S git clang lua nodejs typescript tk r php nasm cmake vulkan-devel nano unrar p7zip faudio gnome-screenshot copyq gedit gspell gnome-keyring gnome-calculator --noconfirm
     systemctl enable bluetooth.service
     systemctl enable firewalld.service
     systemctl enable cups.service
@@ -294,11 +294,9 @@ pacman -S pulseaudio pulseaudio-alsa alsa-plugins libpulse lib32-libpulse lib32-
 
 ##Standard Applications
 # Basic Programs
-pacman -S lm_sensors mpv celluloid thunderbird firefox discord gimp papirus-icon-theme neofetch arch-wiki-docs htop bashtop --noconfirm --needed
+pacman -S fuse2 fuse3 wget unzip lm_sensors ffmpeg obs-studio mpv celluloid thunderbird firefox discord gimp papirus-icon-theme neofetch arch-wiki-docs htop bashtop --noconfirm --needed
 # LibreOffice, Fonts
 pacman -S libreoffice-still ttf-caladea ttf-carlito ttf-dejavu ttf-liberation ttf-linux-libertine-g noto-fonts noto-fonts-cjk noto-fonts-emoji --noconfirm --needed
-# OBS
-pacman -S ffmpeg obs-studio --noconfirm --needed
 # Emus, Memlock   (group: realtime)
 pacman -S ppsspp desmume realtime-privileges --noconfirm --needed
 echo " "
@@ -314,18 +312,21 @@ echo " "
 # VMs(2)   (group: vboxusers)
 pacman -S virtualbox-host-dkms virtualbox virtualbox-guest-iso --noconfirm
 echo " "
-# AppImage Dependencies (https://github.com/AppImage/AppImageKit/wiki/FUSE, https://github.com/AppImage/AppImageKit/issues/1120)
-pacman -S fuse fuse3 --noconfirm --needed
-echo " "
-# Custom packages
+
+## Gaming 
+if [ $use_wine == "1" ]; then
+    pacman -S wine wine-gecko wine-mono vkd3d lib32-vkd3d winetricks --noconfirm
+    echo -e "Installed WINE\n"
+fi
+
+## Custom Packages
 if [ ${#packages_ext} -ge 2 ]; then
     pacman -S $packages_ext --noconfirm
+    echo -e "Installed $packages_ext\n"
 fi
-echo " "
 
 ##Groups
 su $useracc --command="exit"
 usermod -a -G realtime $useracc
 usermod -a -G libvirt $useracc
 usermod -a -G vboxusers $useracc
-echo " "

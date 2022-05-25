@@ -21,7 +21,7 @@ Automated Arch Linux Installation <br>
 </p>
 <br>
 
-## Using archinstall
+### Using archinstall
 ```
 pacman -Sy git --noconfirm
 git clone https://github.com/bunnicash/archinstall
@@ -29,14 +29,14 @@ cd archinstall && chmod +x * && ./archinstall.sh
 ```
 <br>
 
-## Useful Information
+### Useful Information
 - Use an EFI system, enable EFI mode when using VM's
 - For the partitioning wizard, have a disk with >=100GB
 - Using WiFi, set it up using iwctl/iw (SSID with spaces: "SSIDpart1 part2"): [Arch Wiki: Network Config](https://wiki.archlinux.org/title/Network_configuration)
 - Nvidia users are encouraged to edit the pre-made X11 config `/etc/X11/xorg.conf` e.g for custom DPI scaling!
 - Be faster: When typing things into the terminal, press tab to auto-complete <br><br>
 
-## Features
+### Features
 - [x] Unattended installation mode with custom-made/imported configurations
 - [x] Keymap setup, automated disk formatting/partitioning, bootloader setup (systemd-boot/grub)
 - [x] Initial mirrorlist ranking, automated base package installation (pacstrap)
@@ -51,11 +51,11 @@ cd archinstall && chmod +x * && ./archinstall.sh
 - [x] Package group management, ability to have additional programs installed from user input
 - [x] And more... <br><br>
 
-## Testing / Contributing:
+### Testing / Contributing:
 - Is there an unstable branch for testing? Yes, you can use the testing branch: `git clone -b testing https://github.com/bunnicash/archinstall`.
 - This is also the key branch for most of the archinstall development, as changes are first introduced here and merged to main once deemed functional/stable. <br><br>
 
-## Configurations:
+### Configurations:
 - Archinstall uses the `config.archinstall` file that users may edit/import - this makes heavily automated deployments, e.g to virtual environments quick and easy
 - To understand how the configuration file works and what you can do with it, here's the list of options you can change:<br>
 <pre><b>Settings</b>
@@ -85,6 +85,7 @@ cd archinstall && chmod +x * && ./archinstall.sh
 
 • guipreset: add a complete preset featuring DS, DM, DE/WM - use 1 for "Gnome Wayland", 2 for "KDE Development Platform", 3 for "Deepin Desktop", 4 for "Cinnamon Development Platform" and 0 for none (use either displayman + de_wm OR the guipreset)
 
+• use_wine: install wine and its utils/libs, useful for windows programs, games etc - use 1 to install, 0 to skip it 
 • packages_ext: add as many additional packages to be installed as you wish or 0 for none
 </pre>
 <br>
