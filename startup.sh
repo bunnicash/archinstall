@@ -38,7 +38,7 @@ echo " "
 
 ##Bootloader(1), Kernel, Basic packages, Fstab
 if [ $bootloader == "systemd" ]; then
-    use_bootloader=""
+    use_bootloader="systemd"
 elif [ $bootloader == "grub" ]; then
     use_bootloader="grub efibootmgr os-prober"
 fi
