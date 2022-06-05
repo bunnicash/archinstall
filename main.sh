@@ -259,9 +259,9 @@ elif [ $guipreset == "2" ]; then
     pacman -S xorg-server xorg-apps xorg-xinit xorg-twm xorg-xclock xterm --noconfirm
     pacman -S sddm --noconfirm
     systemctl enable sddm.service
-    pacman -S plasma okular kate breeze ksystemlog bluez bluez-tools firewalld ntfs-3g exfatprogs spectacle konsole dolphin ark unrar p7zip colord-kde kcalc network-manager-applet system-config-printer cups --noconfirm
+    pacman -S plasma okular kate breeze kuickshow ksystemlog bluez bluez-tools firewalld ntfs-3g exfatprogs spectacle konsole partitionmanager dolphin ark unrar p7zip colord-kde kcalc network-manager-applet system-config-printer cups --noconfirm
     pacman -R discover --noconfirm
-    pacman -S git github-cli clang lua nodejs typescript tk python-numpy r php nasm cmake eog gnome-disk-utility vulkan-devel nano faudio gnome-keyring --noconfirm
+    pacman -S git github-cli clang lua nodejs typescript tk python-numpy r php nasm cmake vulkan-devel nano faudio gnome-keyring --noconfirm
     systemctl enable bluetooth.service
     systemctl enable firewalld.service
     systemctl enable cups.service
