@@ -2,7 +2,6 @@
 Automated Arch Linux Installation <br>
 
 <p>
-</a>
     <a href="https://github.com/bunnicash/archinstall">
         <img src="https://img.shields.io/github/stars/bunnicash/archinstall?style=flat-square">
     </a>
