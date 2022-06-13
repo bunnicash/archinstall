@@ -2,22 +2,22 @@
 ## Copyright (C) 2022 bunnicash "@bunnicash" and licensed under GPL-2.0
 source /root/archinstall/config.archinstall 
 
-##Locale
+## Locale
 echo "$defaultlocale $defaultlocale2" >> /etc/locale.gen
 locale-gen
 echo "LANG=$defaultlocale" > /etc/locale.conf
 export LANG=$defaultlocale
 echo " "
 
-##Keymap(2)
+## Keymap(2)
 echo "KEYMAP=$defaultkeys" >> /etc/vconsole.conf
 
-##Timezone
+## Timezone
 ln -sf /usr/share/zoneinfo/$zone > /etc/localtime
 hwclock --systohc
 timedatectl set-ntp true
 
-##Multilib, Pacman, Trim
+## Multilib, Pacman, Trim
 systemctl enable fstrim.timer
 cp /etc/pacman.conf /etc/pacman.backup
 sed -i 's/^#ParallelDownloads/ParallelDownloads/' /etc/pacman.conf
@@ -28,7 +28,7 @@ Include = /etc/pacman.d/mirrorlist
 pacman -Sy nano bash-completion --noconfirm --needed
 echo " "
 
-##Accounts
+## Accounts
 echo "$hostname" > /etc/hostname
 echo "127.0.0.1 localhost" >> /etc/hosts
 echo "::1       localhost" >> /etc/hosts
@@ -45,7 +45,7 @@ Defaults rootpw
 " >> /etc/sudoers
 echo " "
 
-##Efivarfs, Bootloader(2)
+## Efivarfs, Bootloader(2)
 if [ $bootloader == "systemd" ]; then
     bootctl install
     # https://wiki.archlinux.org/title/systemd-boot 
@@ -62,7 +62,7 @@ systemctl enable dhcpcd.service
 systemctl enable NetworkManager.service
 echo " "
 
-##Drivers
+## Drivers (CPU, GPU)
 # GET-CPU: Intel / AMD
 proc_type=$(lscpu)
 if grep -E "GenuineIntel" <<< ${proc_type}; then
@@ -93,6 +93,12 @@ fi
 # GET-GPU: NVIDIA
 gpu_type=$(lspci)
 if grep -E "NVIDIA|GeForce" <<< ${gpu_type}; then
+    if [ $kernelver == "linux-lts" ]; then
+        nvidia_package="nvidia-lts"  # nvidia-lts, there's no "nvidia-open-lts"! (https://archlinux.org/packages/?q=nvidia-open)
+    elif [ $kernelver == "linux" ]; then
+        nvidia_package="$nvidia_module"  # nvidia, nvidia-open
+    else nvidia_package="$nvidia_module-dkms"  # nvidia-dkms, nvidia-open-dkms
+    fi
     pacman -S mesa lib32-mesa $nvidia_package nvidia-utils opencl-nvidia lib32-opencl-nvidia libglvnd lib32-libglvnd lib32-nvidia-utils nvidia-settings vulkan-icd-loader lib32-vulkan-icd-loader vulkan-tools --noconfirm
     # Change bootloader default.conf, append:
     if [ $bootloader == "systemd" ]; then
@@ -104,10 +110,6 @@ if grep -E "NVIDIA|GeForce" <<< ${gpu_type}; then
     cp /etc/mkinitcpio.conf /etc/mkinitcpio.backup
     sed -i 's/MODULES=()/MODULES=(nvidia nvidia_modeset nvidia_uvm nvidia_drm)/' /etc/mkinitcpio.conf
     # Create Nvidia Pacman Hook ("nvidia" "nvidia.hook" both work):
-    if [ $kernelver == "linux-lts" ]; then
-        nvidia_package="nvidia-lts"
-    else nvidia_package="nvidia-dkms"
-    fi
     mkdir /etc/pacman.d/hooks
     echo -ne "[Trigger]
 Operation=Install
@@ -179,7 +181,7 @@ elif grep -E "Red Hat, Inc. QXL paravirtual graphic card" <<< ${gpu_type}; then
 fi
 echo " "
 
-##GUI Setup
+## GUI Setup
 # Select DM + DE/WM 
 if [ $archserver == "1" ]; then
     echo "Arch server installed, skipping graphical options and standard app suite!"
@@ -261,7 +263,7 @@ elif [ $guipreset == "2" ]; then
     systemctl enable sddm.service
     pacman -S plasma okular kate breeze kuickshow ksystemlog bluez bluez-tools firewalld ntfs-3g exfatprogs spectacle konsole partitionmanager dolphin ark unrar p7zip colord-kde kcalc network-manager-applet system-config-printer cups --noconfirm
     pacman -R discover --noconfirm
-    pacman -S git github-cli clang lua nodejs typescript tk python-numpy r php nasm cmake vulkan-devel nano faudio gnome-keyring --noconfirm
+    pacman -S git github-cli clang gcc-fortran lua nodejs typescript tk python-numpy r php nasm cmake vulkan-devel nano faudio gnome-keyring --noconfirm
     systemctl enable bluetooth.service
     systemctl enable firewalld.service
     systemctl enable cups.service
@@ -280,7 +282,7 @@ elif [ $guipreset == "4" ]; then
     pacman -S gdm --noconfirm
     systemctl enable gdm.service
     pacman -S cinnamon ttf-dejavu nemo-terminal nemo-fileroller system-config-printer xreader eog eog-plugins blueberry bluez bluez-tools cups gnome-terminal firewalld gnome-disk-utility gparted exfatprogs ntfs-3g colord colord-gtk --noconfirm
-    pacman -S git github-cli clang lua nodejs typescript tk python-numpy r php nasm cmake vulkan-devel nano unrar p7zip faudio gnome-screenshot copyq gedit gspell gnome-keyring gnome-calculator --noconfirm
+    pacman -S git github-cli clang gcc-fortran lua nodejs typescript tk python-numpy r php nasm cmake vulkan-devel nano unrar p7zip faudio gnome-screenshot copyq breeze kate gnome-keyring gnome-calculator --noconfirm
     systemctl enable bluetooth.service
     systemctl enable firewalld.service
     systemctl enable cups.service
@@ -289,14 +291,15 @@ elif [ $guipreset == "0" ]; then
 fi
 echo " "
 
-##ALSA-Pulse
+## ALSA-Pulse
 pacman -S pulseaudio pulseaudio-alsa alsa-plugins libpulse lib32-libpulse lib32-alsa-plugins pavucontrol --noconfirm --needed
 
-##Standard Applications
+## Standard Applications
 # Basic Programs
 pacman -S fuse2 fuse3 wget unzip lm_sensors ffmpeg obs-studio mpv celluloid thunderbird firefox discord gimp papirus-icon-theme neofetch arch-wiki-docs htop bashtop --noconfirm --needed
 # LibreOffice, Fonts
 pacman -S libreoffice-still ttf-caladea ttf-carlito ttf-dejavu ttf-liberation ttf-linux-libertine-g noto-fonts noto-fonts-cjk noto-fonts-emoji --noconfirm --needed
+
 # Emus, Memlock   (group: realtime)
 pacman -S ppsspp desmume realtime-privileges --noconfirm --needed
 echo " "
@@ -304,6 +307,7 @@ echo -ne "
 *      soft      memlock      unlimited
 *      hard      memlock      unlimited
 " >> /etc/security/limits.conf
+
 # VMs(1)   (group: libvirt)
 pacman -S dnsmasq qemu-full libvirt virt-manager --noconfirm
 yes | pacman -S ebtables
@@ -325,7 +329,7 @@ if [ ${#packages_ext} -ge 2 ]; then
     echo -e "Installed $packages_ext\n"
 fi
 
-##Groups
+## Groups
 su $useracc --command="exit"
 usermod -a -G realtime $useracc
 usermod -a -G libvirt $useracc

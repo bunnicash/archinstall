@@ -2,10 +2,10 @@
 ## Copyright (C) 2022 bunnicash "@bunnicash" and licensed under GPL-2.0
 source /root/archinstall/config.archinstall 
 
-##Keymap(1)
+## Keymap(1)
 loadkeys $defaultkeys
 
-##Partitioning
+## Partitioning
 umount -A --recursive /mnt
 echo " "
 partprobe /dev/$drive
@@ -29,14 +29,14 @@ mount /dev/${drive}1 /mnt/boot
 mount /dev/${drive}4 /mnt/home
 echo " " && lsblk && sleep 2 && echo " "
 
-##Mirrors, Keyring, Pacman
+## Mirrors, Keyring, Pacman
 cp /etc/pacman.d/mirrorlist /etc/pacman.d/mirrorlist.backup
 sed -i 's/^#ParallelDownloads/ParallelDownloads/' /etc/pacman.conf
 pacman -Sy archlinux-keyring pacman-contrib --noconfirm
 rankmirrors -n 6 /etc/pacman.d/mirrorlist.backup > /etc/pacman.d/mirrorlist
 echo " "
 
-##Bootloader(1), Kernel, Basic packages, Fstab
+## Bootloader(1), Kernel, Basic packages, Fstab
 if [ $bootloader == "systemd" ]; then
     use_bootloader="systemd"
 elif [ $bootloader == "grub" ]; then

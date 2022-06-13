@@ -77,6 +77,7 @@ cd archinstall && chmod +x * && ./archinstall.sh
 • useracc: name for the user account 
 • userpass: password for the user account 
 
+• nvidia_module: nvidia now offers open source kernel modules - use "nvidia-open" for open, or "nvidia" for proprietary
 • archserver: use a bare arch server including drivers but no GUI setup at all, no standard apps etc - use 1 to enable, 0 to disable
 
 • displayman: setup for the display server (XORG/X11) and the display manager - use A for "SDDM", B for "LightDM", C for "GDM" and 0 for none 
