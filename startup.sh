@@ -51,7 +51,6 @@ elif [ $kernelver == "linux-lts" ]; then
 elif [ $kernelver == "linux-hardened" ]; then
     use_kernelver="linux-hardened linux-hardened-docs linux-hardened-headers"
 fi
-echo -e "Selected bootloader: $bootloader, selected kernel: $kernelver\n"
 pacstrap -i /mnt $use_bootloader base base-devel $use_kernelver linux-firmware --noconfirm
 genfstab -U -p /mnt >> /mnt/etc/fstab
 echo " "
