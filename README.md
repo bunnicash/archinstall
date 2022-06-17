@@ -21,9 +21,17 @@ Automated Arch Linux Installation <br>
 <br>
 
 ### Using archinstall
+- Traditionally, it's recommended to use git:
 ```
 pacman -Sy git --noconfirm
 git clone https://github.com/bunnicash/archinstall
+cd archinstall && chmod +x * && ./archinstall.sh
+```
+
+- Alternatively, you can use wget: 
+```
+wget https://github.com/bunnicash/archinstall/releases/download/latest/archinstall.tar.gz
+tar -xvf archinstall.tar.gz
 cd archinstall && chmod +x * && ./archinstall.sh
 ```
 <br>
@@ -31,7 +39,7 @@ cd archinstall && chmod +x * && ./archinstall.sh
 ### Useful Information
 - Use an EFI system, enable EFI mode when using VM's
 - For the partitioning wizard, have a disk with >=100GB
-- Using WiFi, set it up using iwctl/iw (SSID with spaces: "SSIDpart1 part2"): [Arch Wiki: Network Config](https://wiki.archlinux.org/title/Network_configuration)
+- Using WiFi, set it up using iwctl/iw (SSID with spaces: "SSIDpart1 part2"): [Arch Wiki](https://wiki.archlinux.org/title/Network_configuration)
 - Nvidia users are encouraged to edit the pre-made X11 config `/etc/X11/xorg.conf` e.g for custom DPI scaling!
 - Be faster: When typing things into the terminal, press tab to auto-complete <br><br>
 
@@ -82,10 +90,11 @@ cd archinstall && chmod +x * && ./archinstall.sh
 
 • displayman: setup for the display server (XORG/X11) and the display manager - use A for "SDDM", B for "LightDM", C for "GDM" and 0 for none 
 • de_wm: add the preferred desktop environment or window manager - use D for "KDE", E for "Cinnamon", F for "XFCE", G for "Gnome", H for "XMonad", I for "i3wm" and 0 for none
-
 • guipreset: add a complete preset featuring DS, DM, DE/WM - use 1 for "Gnome Wayland", 2 for "KDE Development Platform", 3 for "Deepin Desktop", 4 for "Cinnamon Development Platform" and 0 for none (use either displayman + de_wm OR the guipreset)
 
-• use_wine: install wine and its utils/libs, useful for windows programs, games etc - use 1 to install, 0 to skip it 
+• use_emul: install and modify a suite of emulators and their dependencies - use 1 to install, 0 to skip 
+• use_vm: installs virtual machine managers/modules - use 1 for "all", 2 for "virt-manager", 3 for "virtualbox", 0 to skip
+• use_wine: install wine and its utils/libs, useful for windows programs, games, proton - use 1 to install, 0 to skip
 • packages_ext: add as many additional packages to be installed as you wish or 0 for none
 </pre>
 <br>

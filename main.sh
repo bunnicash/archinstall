@@ -295,26 +295,44 @@ echo " "
 pacman -S pulseaudio pulseaudio-alsa alsa-plugins libpulse lib32-libpulse lib32-alsa-plugins pavucontrol --noconfirm --needed
 
 ## Standard Applications
-# Basic Programs
 pacman -S fuse2 fuse3 wget unzip lm_sensors ffmpeg obs-studio mpv celluloid thunderbird firefox discord gimp papirus-icon-theme neofetch arch-wiki-docs htop bashtop --noconfirm --needed
-# LibreOffice, Fonts
 pacman -S libreoffice-still ttf-caladea ttf-carlito ttf-dejavu ttf-liberation ttf-linux-libertine-g noto-fonts noto-fonts-cjk noto-fonts-emoji --noconfirm --needed
 
-# Emus, Memlock   (group: realtime)
-pacman -S ppsspp desmume realtime-privileges --noconfirm --needed
-echo " "
-echo -ne "
+## Emulation, Memlock
+if [ $use_emul == "1" ]; then
+    pacman -S ppsspp desmume realtime-privileges --noconfirm --needed
+    echo " "
+    echo -ne "
 *      soft      memlock      unlimited
 *      hard      memlock      unlimited
 " >> /etc/security/limits.conf
+    su $useracc --command="exit"
+    usermod -a -G realtime $useracc
+fi 
 
-# VMs(1)   (group: libvirt)
-pacman -S dnsmasq qemu-full libvirt virt-manager --noconfirm
-yes | pacman -S ebtables
-systemctl enable libvirtd.service
-echo " "
-# VMs(2)   (group: vboxusers)
-pacman -S virtualbox-host-dkms virtualbox virtualbox-guest-iso --noconfirm
+## Virtual Machines
+get_virtmanager () {
+    pacman -S dnsmasq qemu-full libvirt virt-manager --noconfirm
+    yes | pacman -S ebtables
+    systemctl enable libvirtd.service
+    su $useracc --command="exit"
+    usermod -a -G libvirt $useracc
+}
+
+get_virtualbox () {
+    pacman -S virtualbox-host-dkms virtualbox virtualbox-guest-iso --noconfirm
+    su $useracc --command="exit"
+    usermod -a -G vboxusers $useracc
+}
+
+if [ $use_vm == "1" ]; then
+    get_virtmanager
+    get_virtualbox
+elif [ $use_vm == "2" ]; then
+    get_virtmanager
+elif [ $use_vm == "3" ]; then
+    get_virtualbox
+fi 
 echo " "
 
 ## Gaming 
@@ -328,9 +346,3 @@ if [ ${#packages_ext} -ge 2 ]; then
     pacman -S $packages_ext --noconfirm
     echo -e "Installed $packages_ext\n"
 fi
-
-## Groups
-su $useracc --command="exit"
-usermod -a -G realtime $useracc
-usermod -a -G libvirt $useracc
-usermod -a -G vboxusers $useracc
