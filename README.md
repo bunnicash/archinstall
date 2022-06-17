@@ -28,18 +28,18 @@ git clone https://github.com/bunnicash/archinstall
 cd archinstall && chmod +x * && ./archinstall.sh
 ```
 
-- Alternatively, you can use wget too: 
+- Alternatively, you can use wget: 
 ```
 wget https://github.com/bunnicash/archinstall/releases/download/latest/archinstall.tar.gz
 tar -xvf archinstall.tar.gz
 cd archinstall && chmod +x * && ./archinstall.sh
 ```
-<br><br>
+<br>
 
 ### Useful Information
 - Use an EFI system, enable EFI mode when using VM's
 - For the partitioning wizard, have a disk with >=100GB
-- Using WiFi, set it up using iwctl/iw (SSID with spaces: "SSIDpart1 part2"): [Arch Wiki: Network Config](https://wiki.archlinux.org/title/Network_configuration)
+- Using WiFi, set it up using iwctl/iw (SSID with spaces: "SSIDpart1 part2"): [Arch Wiki](https://wiki.archlinux.org/title/Network_configuration)
 - Nvidia users are encouraged to edit the pre-made X11 config `/etc/X11/xorg.conf` e.g for custom DPI scaling!
 - Be faster: When typing things into the terminal, press tab to auto-complete <br><br>
 
