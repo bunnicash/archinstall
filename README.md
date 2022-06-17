@@ -27,7 +27,7 @@ pacman -Sy git --noconfirm
 git clone https://github.com/bunnicash/archinstall
 cd archinstall && chmod +x * && ./archinstall.sh
 ```
-<br>
+
 - Alternatively, you can use wget too: 
 ```
 wget https://github.com/bunnicash/archinstall/releases/download/latest/archinstall.tar.gz
