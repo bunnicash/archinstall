@@ -29,19 +29,21 @@ mount /dev/${drive}1 /mnt/boot
 mount /dev/${drive}4 /mnt/home
 echo " " && lsblk && sleep 2 && echo " "
 
-## Mirrors, Keyring, Pacman
+## Pacman Tweaks (archiso /root)
 cp /etc/pacman.d/mirrorlist /etc/pacman.d/mirrorlist.backup
 sed -i 's/^#ParallelDownloads/ParallelDownloads/' /etc/pacman.conf
 pacman -Sy archlinux-keyring pacman-contrib --noconfirm
 rankmirrors -n 6 /etc/pacman.d/mirrorlist.backup > /etc/pacman.d/mirrorlist
 echo " "
 
-## Bootloader(1), Kernel, Basic packages, Fstab
+## Bootloader(1)
 if [ $bootloader == "systemd" ]; then
     use_bootloader="systemd"
 elif [ $bootloader == "grub" ]; then
     use_bootloader="grub efibootmgr os-prober"
 fi
+
+## Kernel
 if [ $kernelver == "linux" ]; then
     use_kernelver="linux linux-docs linux-headers"
 elif [ $kernelver == "linux-zen" ]; then
@@ -51,9 +53,12 @@ elif [ $kernelver == "linux-lts" ]; then
 elif [ $kernelver == "linux-hardened" ]; then
     use_kernelver="linux-hardened linux-hardened-docs linux-hardened-headers"
 fi
+
+## Pacstrap (New System Install)
 echo -e "Starting pacstrap: $bootloader $kernelver \n"
 pacstrap -i /mnt $use_bootloader base base-devel $use_kernelver linux-firmware --noconfirm
 
+## Fstab
 echo -e "Generating fstab \n"
 genfstab -U -p /mnt >> /mnt/etc/fstab
 

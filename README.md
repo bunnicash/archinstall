@@ -90,6 +90,7 @@ cd archinstall && chmod +x * && ./archinstall.sh
 
 • displayman: setup for the display server (XORG/X11) and the display manager - use A for "SDDM", B for "LightDM", C for "GDM" and 0 for none 
 • de_wm: add the preferred desktop environment or window manager - use D for "KDE", E for "Cinnamon", F for "XFCE", G for "Gnome", H for "XMonad", I for "i3wm" and 0 for none
+
 • guipreset: add a complete preset featuring DS, DM, DE/WM - use 1 for "Gnome Wayland", 2 for "KDE Development Platform", 3 for "Deepin Desktop", 4 for "Cinnamon Development Platform" and 0 for none (use either displayman + de_wm OR the guipreset)
 
 • use_emul: install and modify a suite of emulators and their dependencies - use 1 to install, 0 to skip 
