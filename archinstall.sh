@@ -1,6 +1,6 @@
 #!/bin/bash
 ## Copyright (C) 2022 bunnicash "@bunnicash" and licensed under GPL-2.0
-version="v3.6"
+version="v3.7"
 
 ## Colors
 c-bl () {
