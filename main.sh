@@ -63,31 +63,27 @@ systemctl enable fstrim.timer
 echo " "
 
 ## CPU Microcode (ucode)
+config_ucode () {
+    if [ $bootloader == "systemd" ]; then
+        echo -ne "title Arch Linux
+linux /vmlinuz-$kernelver
+initrd /$set_ucode-ucode.img
+initrd /initramfs-$kernelver.img
+" > /boot/loader/entries/default.conf
+    elif [ $bootloader == "grub" ]; then
+        echo "grub: skipping further bootloader config"
+    fi
+}
+
 proc_type=$(lscpu)
 if grep -E "GenuineIntel" <<< ${proc_type}; then  # CPU: Intel
-    echo "Intel microcode: Installing and generating bootloader default.conf"
-    pacman -Sy --noconfirm intel-ucode
-    if [ $bootloader == "systemd" ]; then
-        echo -ne "title Arch Linux
-linux /vmlinuz-$kernelver
-initrd /intel-ucode.img
-initrd /initramfs-$kernelver.img
-" > /boot/loader/entries/default.conf
-    elif [ $bootloader == "grub" ]; then
-        echo "grub: skipping further bootloader config"
-    fi
+    pacman -S intel-ucode --noconfirm
+    set_ucode="intel"
+    config_ucode
 elif grep -E "AuthenticAMD" <<< ${proc_type}; then  # CPU: AMD
-    echo "AMD microcode: Installing and generating bootloader default.conf"
-    pacman -Sy --noconfirm amd-ucode
-    if [ $bootloader == "systemd" ]; then
-        echo -ne "title Arch Linux
-linux /vmlinuz-$kernelver
-initrd /amd-ucode.img
-initrd /initramfs-$kernelver.img
-" > /boot/loader/entries/default.conf
-    elif [ $bootloader == "grub" ]; then
-        echo "grub: skipping further bootloader config"
-    fi
+    pacman -S amd-ucode --noconfirm
+    set_ucode="amd"
+    config_ucode
 fi
 
 ## GPU Drivers (discrete, virtual, integrated)
@@ -137,7 +133,6 @@ Section \"OutputClass\"
     Option \"DPI\" \"96 x 96\"
 EndSection
 " >> /etc/X11/xorg.conf
-    echo "Nvidia GPU: Done."
 elif lspci | grep 'VGA' | grep -E "Radeon|AMD"; then  # GPU: AMD / Radeon
     pacman -S mesa lib32-mesa xf86-video-amdgpu vulkan-radeon lib32-vulkan-radeon vulkan-icd-loader lib32-vulkan-icd-loader vulkan-tools --noconfirm
     if [ $bootloader == "systemd" ]; then
@@ -145,7 +140,6 @@ elif lspci | grep 'VGA' | grep -E "Radeon|AMD"; then  # GPU: AMD / Radeon
     elif [ $bootloader == "grub" ]; then
         echo "grub: skipping further bootloader config"
     fi
-    echo "AMD GPU: Done."
 elif grep -E "Intel Corporation UHD" <<< ${gpu_type} || grep -E "Integrated Graphics Controller" <<< ${gpu_type}; then  # GPU: Intel (Not recommended: "xf86-video-intel")
     pacman -S mesa lib32-mesa libva-intel-driver libvdpau-va-gl vulkan-intel lib32-vulkan-intel libva-utils vulkan-icd-loader lib32-vulkan-icd-loader vulkan-tools --noconfirm
     if [ $bootloader == "systemd" ]; then
@@ -153,7 +147,6 @@ elif grep -E "Intel Corporation UHD" <<< ${gpu_type} || grep -E "Integrated Grap
     elif [ $bootloader == "grub" ]; then
         echo "grub: skipping further bootloader config"
     fi
-    echo "Intel GPU: Done."
 elif grep -E "VMware SVGA II Adapter" <<< ${gpu_type}; then  # GPU: VMware / VirtualBox
     pacman -S mesa lib32-mesa xf86-video-vmware vulkan-tools --noconfirm
     if [ $bootloader == "systemd" ]; then
@@ -161,7 +154,6 @@ elif grep -E "VMware SVGA II Adapter" <<< ${gpu_type}; then  # GPU: VMware / Vir
     elif [ $bootloader == "grub" ]; then
         echo "grub: skipping further bootloader config"
     fi
-    echo "VMware GPU: Done."
 elif grep -E "Red Hat, Inc. QXL paravirtual graphic card" <<< ${gpu_type}; then  # GPU: KVM, VirtManager
     pacman -S mesa lib32-mesa xf86-video-qxl vulkan-tools --noconfirm
     if [ $bootloader == "systemd" ]; then
@@ -169,7 +161,6 @@ elif grep -E "Red Hat, Inc. QXL paravirtual graphic card" <<< ${gpu_type}; then 
     elif [ $bootloader == "grub" ]; then
         echo "grub: skipping further bootloader config"
     fi
-    echo "VM QXL GPU: Done."
 fi
 echo " "
 
@@ -182,7 +173,6 @@ fi
 ## GUI Setup (1): Display Manager Modules
 get_xorg () {
     pacman -S xorg-server xorg-apps xorg-xinit xorg-twm xorg-xclock xterm --noconfirm
-    echo -e "Display Server: X11 / XORG \n"
 }
 if [ $displayman == "A" ]; then  # DM: SDDM
     get_xorg
@@ -232,7 +222,7 @@ elif [ $de_wm == "I" ]; then  # WM: i3 (https://wiki.archlinux.org/title/i3)
     cp /etc/X11/xinit/xinitrc/ ~/.xinitrc
     echo -e "\nTo get started with i3wm, see: https://i3wm.org/docs/" && sleep 4
 elif [ $de_wm == "0" ]; then
-    echo "No standalone DE, WM selected"
+    echo "No standalone DE/WM selected"
 fi
 echo " "
 
@@ -273,7 +263,7 @@ elif [ $guipreset == "4" ]; then  # Cinnamon Development Platform
     systemctl enable firewalld.service
     systemctl enable cups.service
 elif [ $guipreset == "0" ]; then
-    echo "No preset selected"
+    echo "No environment preset selected"
 fi
 echo " "
 
