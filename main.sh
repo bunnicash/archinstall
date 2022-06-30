@@ -56,11 +56,16 @@ fi
 echo " "
 
 ## Services
+init_enable () {
+    for service in $services; do
+        systemctl enable $service
+    done
+    echo -e "Enabled $services \n"
+}
+
 pacman -S dhcpcd networkmanager --noconfirm --needed
-systemctl enable dhcpcd.service
-systemctl enable NetworkManager.service
-systemctl enable fstrim.timer
-echo " "
+services="dhcpcd.service NetworkManager.service fstrim.timer"
+init_enable
 
 ## CPU Microcode (ucode)
 config_ucode () {
@@ -164,106 +169,69 @@ elif grep -E "Red Hat, Inc. QXL paravirtual graphic card" <<< ${gpu_type}; then 
 fi
 echo " "
 
-## Arch Linux Server
-if [ $archserver == "1" ]; then
-    echo "Arch Linux Server installed, skipping graphical options and standard app suite!"
-    exit 0
-fi
-
-## GUI Setup (1): Display Manager Modules
+## Presets: Fully Preconfigured User Environments
 get_xorg () {
     pacman -S xorg-server xorg-apps xorg-xinit xorg-twm xorg-xclock xterm --noconfirm
 }
-if [ $displayman == "A" ]; then  # DM: SDDM
-    get_xorg
-    pacman -S sddm --noconfirm
-    systemctl enable sddm.service
-elif [ $displayman == "B" ]; then  # DM: LightDM
-    get_xorg
-    pacman -S lightdm lightdm-gtk-greeter lightdm-gtk-greeter-settings lightdm-slick-greeter --noconfirm
-    systemctl enable lightdm.service
-    echo "greeter-session=lightdm-slick-greeter" >> /etc/lightdm/lightdm.conf
-elif [ $displayman == "C" ]; then  # DM: GDM
-    get_xorg
-    pacman -S gdm --noconfirm
-    systemctl enable gdm.service
-elif [ $displayman == "0" ]; then
-    echo "No standalone DM selected"
-fi
 
-## GUI Setup (2): Desktop Environment / Window Manager Modules
-if [ $de_wm == "D" ]; then  # DE: KDE
-    pacman -S plasma okular kate breeze kuickshow ksystemlog bluez bluez-tools firewalld ntfs-3g exfatprogs spectacle konsole partitionmanager dolphin ark unrar p7zip colord-kde kcalc network-manager-applet system-config-printer cups --noconfirm
-    pacman -R discover --noconfirm
-    systemctl enable bluetooth.service
-    systemctl enable firewalld.service
-    systemctl enable cups.service
-elif [ $de_wm == "E" ]; then  # DE: Cinnamon
-    pacman -S cinnamon ttf-dejavu nemo-fileroller system-config-printer gnome-keyring gnome-calculator xreader xed eog eog-plugins blueberry bluez bluez-tools cups gnome-terminal ufw gufw gnome-disk-utility gparted exfatprogs ntfs-3g colord --noconfirm
-    systemctl enable bluetooth.service
-    systemctl enable ufw.service
-    systemctl enable cups.service
-elif [ $de_wm == "F" ]; then  # DE: XFCE
-    pacman -S xfce4 xfce4-goodies gnome-disk-utility xfce4-settings thunar-archive-plugin colord colord-gtk galculator file-roller thunar-media-tags-plugin gvfs bluez bluez-tools firewalld ntfs-3g exfatprogs network-manager-applet system-config-printer cups xfce-terminal xfce-screenshooter --noconfirm
-    systemctl enable bluetooth.service
-    systemctl enable firewalld.service
-    systemctl enable cups.service
-elif [ $de_wm == "G" ]; then  # DE: GNOME on X11
-    pacman -S gnome --noconfirm
-    pacman -S gnome-bluetooth bluez bluez-tools file-roller gnome-terminal nautilus eog evince gnome-calculator gnome-calendar gnome-color-manager gnome-tweaks gnome-power-manager gnome-system-monitor gnome-control-center gnome-screenshot ntfs-3g exfatprogs cups ufw gufw colord system-config-printer --noconfirm
-    systemctl enable bluetooth.service
-    systemctl enable ufw.service
-    systemctl enable cups.service
-elif [ $de_wm == "H" ]; then  # WM: XMonad (https://wiki.archlinux.org/title/xmonad)
-    pacman -S xmonad xmonad-contrib dmenu xmobar xterm --noconfirm
-    echo -e "\nTo get started with xmonad, see: https://xmonad.org/documentation.html" && sleep 4 
-elif [ $de_wm == "I" ]; then  # WM: i3 (https://wiki.archlinux.org/title/i3)
-    pacman -S i3-wm i3lock i3status i3blocks dmenu konsole --noconfirm
-    cp /etc/X11/xinit/xinitrc/ ~/.xinitrc
-    echo -e "\nTo get started with i3wm, see: https://i3wm.org/docs/" && sleep 4
-elif [ $de_wm == "0" ]; then
-    echo "No standalone DE/WM selected"
-fi
-echo " "
-
-## Presets: Fully Preconfigured Environments
 if [ $guipreset == "1" ]; then  # Gnome Wayland (Command "echo $XDG_SESSION_TYPE" shows "wayland")
     pacman -S gdm --noconfirm
-    systemctl enable gdm.service
     pacman -S gnome --noconfirm
     pacman -S gnome-bluetooth bluez bluez-tools file-roller gnome-terminal nautilus eog evince gnome-calculator gnome-calendar gnome-color-manager gnome-tweaks gnome-power-manager gnome-system-monitor gnome-control-center gnome-screenshot ntfs-3g exfatprogs cups ufw gufw colord system-config-printer --noconfirm
-    systemctl enable bluetooth.service
-    systemctl enable ufw.service
-    systemctl enable cups.service
+    services="gdm.service bluetooth.service ufw.service cups.service"
+    init_enable
 elif [ $guipreset == "2" ]; then  # KDE Development Platform
     get_xorg
     pacman -S sddm --noconfirm
-    systemctl enable sddm.service
     pacman -S plasma okular kate breeze kuickshow ksystemlog bluez bluez-tools firewalld ntfs-3g exfatprogs spectacle konsole partitionmanager dolphin ark unrar p7zip colord-kde kcalc network-manager-applet system-config-printer cups --noconfirm
     pacman -R discover --noconfirm
-    pacman -S git github-cli clang gcc-fortran lua nodejs typescript tk python-numpy r php nasm cmake vulkan-devel faudio gnome-keyring --noconfirm
-    systemctl enable bluetooth.service
-    systemctl enable firewalld.service
-    systemctl enable cups.service
+    pacman -S git github-cli clang gcc-fortran lua nodejs typescript tk python-numpy r php nasm cmake vulkan-devel faudio gnome-keyring meson edk2-ovmf --noconfirm
+    services="sddm.service bluetooth.service firewalld.service cups.service"
+    init_enable
 elif [ $guipreset == "3" ]; then  # Deepin Desktop Environment (DDE)
     get_xorg
-    pacman -S deepin deepin-extra deepin-kwin lightdm bluez bluez-tools ntfs-3g exfatprogs ufw gufw cups --noconfirm
-    systemctl enable lightdm.service
+    pacman -S lightdm --noconfirm
+    pacman -S deepin deepin-extra deepin-kwin bluez bluez-tools ntfs-3g exfatprogs ufw gufw cups --noconfirm
+    services="lightdm.service bluetooth.service ufw.service cups.service"
+    init_enable
     echo "greeter-session=lightdm-deepin-greeter" >> /etc/lightdm/lightdm.conf
-    systemctl enable bluetooth.service
-    systemctl enable ufw.service
-    systemctl enable cups.service
 elif [ $guipreset == "4" ]; then  # Cinnamon Development Platform
     get_xorg
     pacman -S gdm --noconfirm
-    systemctl enable gdm.service
     pacman -S cinnamon ttf-dejavu nemo-terminal nemo-fileroller system-config-printer xreader eog eog-plugins blueberry bluez bluez-tools cups gnome-terminal firewalld gnome-disk-utility gparted exfatprogs ntfs-3g colord colord-gtk --noconfirm
-    pacman -S git github-cli clang gcc-fortran lua nodejs typescript tk python-numpy r php nasm cmake vulkan-devel unrar p7zip faudio gnome-screenshot copyq breeze kate gnome-keyring gnome-calculator --noconfirm
-    systemctl enable bluetooth.service
-    systemctl enable firewalld.service
-    systemctl enable cups.service
-elif [ $guipreset == "0" ]; then
-    echo "No environment preset selected"
+    pacman -S git github-cli clang gcc-fortran lua nodejs typescript tk python-numpy r php nasm cmake vulkan-devel unrar p7zip faudio gnome-screenshot copyq breeze kate gnome-keyring gnome-calculator meson edk2-ovmf --noconfirm
+    services="gdm.service bluetooth.service firewalld.service cups.service"
+    init_enable
+elif [ $guipreset == "5" ]; then  # Cinnamon Standard
+    get_xorg
+    pacman -S lightdm lightdm-gtk-greeter lightdm-gtk-greeter-settings lightdm-slick-greeter --noconfirm
+    pacman -S cinnamon ttf-dejavu nemo-fileroller system-config-printer gnome-keyring gnome-calculator xreader xed eog eog-plugins blueberry bluez bluez-tools cups gnome-terminal ufw gufw gnome-disk-utility gparted exfatprogs ntfs-3g colord --noconfirm
+    services="lightdm.service bluetooth.service ufw.service cups.service"
+    init_enable
+    echo "greeter-session=lightdm-slick-greeter" >> /etc/lightdm/lightdm.conf
+elif [ $guipreset == "6" ]; then  # XFCE Standard
+    get_xorg
+    pacman -S lightdm lightdm-gtk-greeter lightdm-gtk-greeter-settings --noconfirm
+    pacman -S xfce4 xfce4-goodies gnome-disk-utility xfce4-settings thunar-archive-plugin colord colord-gtk galculator file-roller thunar-media-tags-plugin gvfs bluez bluez-tools firewalld ntfs-3g exfatprogs network-manager-applet system-config-printer cups xfce-terminal xfce-screenshooter --noconfirm
+    services="lightdm.service bluetooth.service firewalld.service cups.service"
+    init_enable
+elif [ $guipreset == "7" ]; then  # Gnome Standard (X11)
+    get_xorg
+    pacman -S gdm --noconfirm
+    pacman -S gnome --noconfirm
+    pacman -S gnome-bluetooth bluez bluez-tools file-roller gnome-terminal nautilus eog evince gnome-calculator gnome-calendar gnome-color-manager gnome-tweaks gnome-power-manager gnome-system-monitor gnome-control-center gnome-screenshot ntfs-3g exfatprogs cups ufw gufw colord system-config-printer --noconfirm
+    services="gdm.service bluetooth.service ufw.service cups.service"
+    init_enable
+elif [ $guipreset == "8" ]; then  # Xmonad (/etc/sddm.conf)
+    get_xorg
+    pacman -S sddm --noconfirm
+    pacman -S xmonad xmonad-contrib dmenu xmobar xterm --noconfirm
+    services="sddm.service"
+    init_enable
+    echo "To get started with xmonad, see: https://xmonad.org/documentation.html" && sleep 4 
+elif [ $guipreset == "0" ]; then  # Bare Arch Server
+    echo "Arch Linux Server selected, skipping graphical environments and standard app suite!"
+    exit 0
 fi
 echo " "
 
