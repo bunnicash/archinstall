@@ -60,7 +60,7 @@ init_enable () {
     for service in $services; do
         systemctl enable $service
     done
-    echo " "
+    echo -e "Enabled $services \n"
 }
 
 pacman -S dhcpcd networkmanager --noconfirm --needed
@@ -169,7 +169,7 @@ elif grep -E "Red Hat, Inc. QXL paravirtual graphic card" <<< ${gpu_type}; then 
 fi
 echo " "
 
-## Presets: Fully Preconfigured Environments
+## Presets: Fully Preconfigured User Environments
 get_xorg () {
     pacman -S xorg-server xorg-apps xorg-xinit xorg-twm xorg-xclock xterm --noconfirm
 }
@@ -211,9 +211,9 @@ elif [ $guipreset == "5" ]; then  # Cinnamon Standard
     echo "greeter-session=lightdm-slick-greeter" >> /etc/lightdm/lightdm.conf
 elif [ $guipreset == "6" ]; then  # XFCE Standard
     get_xorg
-    pacman -S sddm --noconfirm
+    pacman -S lightdm lightdm-gtk-greeter lightdm-gtk-greeter-settings --noconfirm
     pacman -S xfce4 xfce4-goodies gnome-disk-utility xfce4-settings thunar-archive-plugin colord colord-gtk galculator file-roller thunar-media-tags-plugin gvfs bluez bluez-tools firewalld ntfs-3g exfatprogs network-manager-applet system-config-printer cups xfce-terminal xfce-screenshooter --noconfirm
-    services="sddm.service bluetooth.service firewalld.service cups.service"
+    services="lightdm.service bluetooth.service firewalld.service cups.service"
     init_enable
 elif [ $guipreset == "7" ]; then  # Gnome Standard (X11)
     get_xorg
@@ -222,7 +222,7 @@ elif [ $guipreset == "7" ]; then  # Gnome Standard (X11)
     pacman -S gnome-bluetooth bluez bluez-tools file-roller gnome-terminal nautilus eog evince gnome-calculator gnome-calendar gnome-color-manager gnome-tweaks gnome-power-manager gnome-system-monitor gnome-control-center gnome-screenshot ntfs-3g exfatprogs cups ufw gufw colord system-config-printer --noconfirm
     services="gdm.service bluetooth.service ufw.service cups.service"
     init_enable
-elif [ $guipreset == "8" ]; then  # Xmonad
+elif [ $guipreset == "8" ]; then  # Xmonad (/etc/sddm.conf)
     get_xorg
     pacman -S sddm --noconfirm
     pacman -S xmonad xmonad-contrib dmenu xmobar xterm --noconfirm

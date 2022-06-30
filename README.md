@@ -88,7 +88,7 @@ cd archinstall && chmod +x * && ./archinstall.sh
 
 • nvidia_module: nvidia now offers open source kernel modules - use "nvidia-open" for open, or "nvidia" for proprietary
 
-• guipreset: add a complete preset featuring DS, DM, DE/WM - use 1 for "Gnome Wayland", 2 for "KDE Development Platform", 3 for "Deepin Desktop", 4 for "Cinnamon Development Platform" and 0 for a bare Arch server
+• guipreset: add a complete preset featuring DS, DM, DE/WM - use 1 for "Gnome Wayland", 2 for "KDE Development Platform", 3 for "Deepin Desktop", 4 for "Cinnamon Development Platform", 5 for "Cinnamon", 6 for "XFCE", 7 for "Gnome X11", 8 for "XMonad" and 0 for a bare Arch server
 
 • use_emul: install and modify a suite of emulators and their dependencies - use 1 to install, 0 to skip 
 • use_vm: installs virtual machine managers/modules - use 1 for "all", 2 for "virt-manager", 3 for "virtualbox", 0 to skip
