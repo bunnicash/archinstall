@@ -87,12 +87,8 @@ cd archinstall && chmod +x * && ./archinstall.sh
 • userpass: password for the user account 
 
 • nvidia_module: nvidia now offers open source kernel modules - use "nvidia-open" for open, or "nvidia" for proprietary
-• archserver: use a bare arch server including drivers but no GUI setup at all, no standard apps etc - use 1 to enable, 0 to disable
 
-• displayman: setup for the display server (XORG/X11) and the display manager - use A for "SDDM", B for "LightDM", C for "GDM" and 0 for none 
-• de_wm: add the preferred desktop environment or window manager - use D for "KDE", E for "Cinnamon", F for "XFCE", G for "Gnome", H for "XMonad", I for "i3wm" and 0 for none
-
-• guipreset: add a complete preset featuring DS, DM, DE/WM - use 1 for "Gnome Wayland", 2 for "KDE Development Platform", 3 for "Deepin Desktop", 4 for "Cinnamon Development Platform" and 0 for none (use either displayman + de_wm OR the guipreset)
+• guipreset: add a complete preset featuring DS, DM, DE/WM - use 1 for "Gnome Wayland", 2 for "KDE Development Platform", 3 for "Deepin Desktop", 4 for "Cinnamon Development Platform" and 0 for a bare Arch server
 
 • use_emul: install and modify a suite of emulators and their dependencies - use 1 to install, 0 to skip 
 • use_vm: installs virtual machine managers/modules - use 1 for "all", 2 for "virt-manager", 3 for "virtualbox", 0 to skip

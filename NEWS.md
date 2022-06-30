@@ -1,6 +1,6 @@
 # News for archinstall
 ### Major updates that alter the way archinstall works and/or how users use archinstall
-- 30.06.2022: 
+- 30.06.2022: Added more fully preconfirgured graphical environments and removed standalone GUI modules. 
 - 17.06.2022 - 30.06.2022: Several refactoring updates released to significantly improve the code. 
 - 17.06.2022: Users may now use wget as an alternative to download and confirgure the installer. 
 - 19.05.2022: A basic arch server without any graphical user interface can now be installed.
