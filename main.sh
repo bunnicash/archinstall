@@ -69,10 +69,11 @@ init_enable
 
 ## CPU Microcode (ucode)
 config_ucode () {
+    pacman -S $set_ucode --noconfirm
     if [ $bootloader == "systemd" ]; then
         echo -ne "title Arch Linux
 linux /vmlinuz-$kernelver
-initrd /$set_ucode-ucode.img
+initrd /$set_ucode.img
 initrd /initramfs-$kernelver.img
 " > /boot/loader/entries/default.conf
     elif [ $bootloader == "grub" ]; then
@@ -82,27 +83,25 @@ initrd /initramfs-$kernelver.img
 
 proc_type=$(lscpu)
 if grep -E "GenuineIntel" <<< ${proc_type}; then  # CPU: Intel
-    pacman -S intel-ucode --noconfirm
-    set_ucode="intel"
+    set_ucode="intel-ucode"
     config_ucode
 elif grep -E "AuthenticAMD" <<< ${proc_type}; then  # CPU: AMD
-    pacman -S amd-ucode --noconfirm
-    set_ucode="amd"
+    set_ucode="amd-ucode"
     config_ucode
 fi
 
 ## GPU Drivers (discrete, virtual, integrated)
 gpu_type=$(lspci)
-if grep -E "NVIDIA|GeForce" <<< ${gpu_type}; then  # GPU: NVIDIA (https://archlinux.org/packages/: nvidia, nvidia-lts, nvidia-dkms | nvidia-open, nvidia-open-dkms)
-    if [ $kernelver == "linux-lts" ]; then
+if grep -E "NVIDIA|GeForce" <<< ${gpu_type}; then  # GPU: NVIDIA (https://archlinux.org/packages/)
+    if [ $kernelver == "linux-lts" ]; then  # nvidia-lts
         nvidia_package="nvidia-lts"
-    elif [ $kernelver == "linux" ]; then
+    elif [ $kernelver == "linux" ]; then  # nvidia, nvidia-open
         nvidia_package="$nvidia_module"
-    else nvidia_package="$nvidia_module-dkms"
+    else nvidia_package="$nvidia_module-dkms"  # nvidia-dkms, nvidia-open-dkms
     fi
 
-    pacman -S mesa lib32-mesa $nvidia_package nvidia-utils opencl-nvidia lib32-opencl-nvidia libglvnd lib32-libglvnd lib32-nvidia-utils nvidia-settings vulkan-icd-loader lib32-vulkan-icd-loader vulkan-tools --noconfirm
-    if [ $bootloader == "systemd" ]; then  # Change default.conf, append:
+    pacman -S mesa lib32-mesa $nvidia_package nvidia-utils lib32-nvidia-utils opencl-nvidia lib32-opencl-nvidia libglvnd lib32-libglvnd nvidia-settings vulkan-icd-loader lib32-vulkan-icd-loader vulkan-tools --noconfirm
+    if [ $bootloader == "systemd" ]; then
         echo "options root=PARTUUID=$(blkid -s PARTUUID -o value /dev/${drive}3) rw nvidia-drm.modeset=1" >> /boot/loader/entries/default.conf
     elif [ $bootloader == "grub" ]; then
         echo "grub: skipping further bootloader config"
@@ -174,10 +173,12 @@ get_xorg () {
     pacman -S xorg-server xorg-apps xorg-xinit xorg-twm xorg-xclock xterm --noconfirm
 }
 
-if [ $guipreset == "1" ]; then  # Gnome Wayland (Command "echo $XDG_SESSION_TYPE" shows "wayland")
-    pacman -S gdm --noconfirm
-    pacman -S gnome --noconfirm
-    pacman -S gnome-bluetooth bluez bluez-tools file-roller gnome-terminal nautilus eog evince gnome-calculator gnome-calendar gnome-color-manager gnome-tweaks gnome-power-manager gnome-system-monitor gnome-control-center gnome-screenshot ntfs-3g exfatprogs cups ufw gufw colord system-config-printer --noconfirm
+if [ $guipreset == "0" ]; then  # Arch Server
+    echo "Arch Linux Server selected, skipping graphical environments and standard app suite!"
+    exit 0
+elif [ $guipreset == "1" ]; then  # Gnome Wayland ("echo $XDG_SESSION_TYPE" = "wayland")
+    pacman -S gdm gnome --noconfirm
+    pacman -S gnome-bluetooth bluez bluez-tools file-roller gnome-terminal nautilus eog evince gnome-calculator gnome-calendar gnome-color-manager gnome-tweaks gnome-power-manager gnome-system-monitor gnome-control-center gnome-screenshot ntfs-3g exfatprogs cups ufw gufw colord system-config-printer --noconfirm --needed
     services="gdm.service bluetooth.service ufw.service cups.service"
     init_enable
 elif [ $guipreset == "2" ]; then  # KDE Development Platform
@@ -217,21 +218,22 @@ elif [ $guipreset == "6" ]; then  # XFCE Standard
     init_enable
 elif [ $guipreset == "7" ]; then  # Gnome Standard (X11)
     get_xorg
-    pacman -S gdm --noconfirm
-    pacman -S gnome --noconfirm
-    pacman -S gnome-bluetooth bluez bluez-tools file-roller gnome-terminal nautilus eog evince gnome-calculator gnome-calendar gnome-color-manager gnome-tweaks gnome-power-manager gnome-system-monitor gnome-control-center gnome-screenshot ntfs-3g exfatprogs cups ufw gufw colord system-config-printer --noconfirm
+    pacman -S gdm gnome --noconfirm
+    pacman -S gnome-bluetooth bluez bluez-tools file-roller gnome-terminal nautilus eog evince gnome-calculator gnome-calendar gnome-color-manager gnome-tweaks gnome-power-manager gnome-system-monitor gnome-control-center gnome-screenshot ntfs-3g exfatprogs cups ufw gufw colord system-config-printer --noconfirm --needed
     services="gdm.service bluetooth.service ufw.service cups.service"
     init_enable
 elif [ $guipreset == "8" ]; then  # Xmonad (/etc/sddm.conf)
     get_xorg
-    pacman -S sddm --noconfirm
-    pacman -S xmonad xmonad-contrib dmenu xmobar xterm --noconfirm
+    pacman -S sddm xmonad xmonad-contrib dmenu xmobar xterm --noconfirm
     services="sddm.service"
     init_enable
-    echo "To get started with xmonad, see: https://xmonad.org/documentation.html" && sleep 4 
-elif [ $guipreset == "0" ]; then  # Bare Arch Server
-    echo "Arch Linux Server selected, skipping graphical environments and standard app suite!"
-    exit 0
+    echo "To get started with xmonad, see: https://xmonad.org/documentation.html" && sleep 4
+elif [ $guipreset == "9" ]; then  # KDE Standard
+    get_xorg
+    pacman -S sddm plasma okular kate breeze kuickshow ksystemlog bluez bluez-tools firewalld ntfs-3g exfatprogs spectacle konsole partitionmanager dolphin ark unrar p7zip colord-kde kcalc network-manager-applet system-config-printer cups --noconfirm
+    pacman -R discover --noconfirm
+    services="sddm.service bluetooth.service firewalld.service cups.service"
+    init_enable
 fi
 echo " "
 
@@ -242,15 +244,20 @@ pacman -S pulseaudio pulseaudio-alsa alsa-plugins libpulse lib32-libpulse lib32-
 pacman -S nano bash-completion fuse2 fuse3 wget unzip lm_sensors ffmpeg obs-studio mpv celluloid thunderbird firefox discord gimp papirus-icon-theme neofetch arch-wiki-docs htop bashtop --noconfirm --needed
 pacman -S libreoffice-still ttf-caladea ttf-carlito ttf-dejavu ttf-liberation ttf-linux-libertine-g noto-fonts noto-fonts-cjk noto-fonts-emoji --noconfirm --needed
 
+## Groups (Substitute User: Quickly add users to groups)
+su_group () {
+    su $useracc --command="exit"
+}
+
 ## Emulation, Memlock
-if [ $use_emul == "1" ]; then
+if [ $use_emu == "1" ]; then
     pacman -S ppsspp desmume realtime-privileges --noconfirm --needed
     echo " "
     echo -ne "
 *      soft      memlock      unlimited
 *      hard      memlock      unlimited
 " >> /etc/security/limits.conf
-    su $useracc --command="exit"
+    su_group
     usermod -a -G realtime $useracc
 fi 
 
@@ -259,13 +266,13 @@ get_virtmanager () {
     pacman -S dnsmasq qemu-full libvirt virt-manager --noconfirm
     yes | pacman -S ebtables
     systemctl enable libvirtd.service
-    su $useracc --command="exit"
+    su_group
     usermod -a -G libvirt $useracc
 }
 
 get_virtualbox () {
     pacman -S virtualbox-host-dkms virtualbox virtualbox-guest-iso --noconfirm
-    su $useracc --command="exit"
+    su_group
     usermod -a -G vboxusers $useracc
 }
 

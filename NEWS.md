@@ -1,5 +1,7 @@
 # News for archinstall
 ### Major updates that alter the way archinstall works and/or how users use archinstall
+- 02.07.2022: The README has been updated to feature easier to understand instructions.
+- 02.07.2022: The program versioning has been changed: vA.B -> vA.B.C (major, minor, patch).
 - 30.06.2022: Added more fully preconfigured graphical environments, removed standalone GUI modules. 
 - 17.06.2022 - 30.06.2022: Several refactoring updates released to significantly improve the code. 
 - 17.06.2022: Users may now use wget as an alternative to download and confirgure the installer. 
